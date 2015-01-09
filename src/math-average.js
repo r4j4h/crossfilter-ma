@@ -1,6 +1,9 @@
+
+var crossfilterMA = crossfilterMA || {};
+
 /**
  * Calculate the average of a set of numbers
  */
-crossfilterMA.average = function(setOfNumbers) {
+crossfilterMA.average = function( setOfNumbers ) {
 
 };

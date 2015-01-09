@@ -55,7 +55,7 @@ module.exports = function ( grunt ) {
                 src: [ 'src/**/*.js', 'Gruntfile.js' ],
                 options: {
                     jshintrc: '.jshintrc',
-                    ignores: ['src/banner.js', 'src/footer.js']
+                    ignores: [ 'src/banner.js', 'src/footer.js' ]
                 }
             }
         },

@@ -47,32 +47,35 @@ crossfilterMA[ 'crossfilter-ma' ] = function() {
     return 'hello world';
 };
 
+
+var crossfilterMA = crossfilterMA || {};
+
 /**
  * Calculate the average of a set of numbers
  */
-crossfilterMA.average = function(setOfNumbers) {
+crossfilterMA.average = function( setOfNumbers ) {
 
 };
+var crossfilterMA = crossfilterMA || {};
+
 /**
  * Calculate the average of a set of numbers
+ *
+ * TODO Remove date and make only iterative
+ * TODO Make date centric that is less performant but works w/ unordered groups and redundant keyed groups
+ *
+ * @param {{all: Function, top: Function}} sourceGroup Crossfilter group
+ * @param {Number} ndays Number of datapoints for moving average
+ * @returns {{all: Function, top: Function}}
  */
-crossfilterMA.calculateRollingAverage = function(setOfNumbers, rollLength) {
-    rollLength = (typeof rollLength !== 'undefined' ) ? rollLength : 2;
-    var newSet = [];
-
-
-    return newSet;
-};
-
-
-crossfilterMA.accumulate_group_for_nday_moving_average = function(source_group, ndays) {
+crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays ) {
     return {
         all:function () {
             var cumulate = 0;
             var result = [];
-            var all = source_group.all();
-            console.log( 'test', source_group, all );
-            var accumulatedAll = all.map(function(d, i, arr) {
+            var all = sourceGroup.all();
+            console.log( 'test', sourceGroup, all );
+            var accumulatedAll = all.map( function( d, i, arr ) {
 
                 // find previous 2 days
                 var days = ndays - 1;
@@ -93,11 +96,11 @@ crossfilterMA.accumulate_group_for_nday_moving_average = function(source_group, 
                 // Make a crossfilter of our full array of data
 
 
-                var myDx = crossfilter( all );
-
-                var myDimensionDate = myDx.dimension(function(d) {
-                    return d.key;
-                });
+                //var myDx = crossfilter( all );
+                //
+                //var myDimensionDate = myDx.dimension(function(d) {
+                //    return d.key;
+                //} );
 
 
                 while ( thisDay++ < days ) {
@@ -109,7 +112,7 @@ crossfilterMA.accumulate_group_for_nday_moving_average = function(source_group, 
                         //momentedDate.subtract( thisDay, 'hours' );
                         //myDimensionDate.filterExact( batchYear( momentedDate ) );
                         //var thisDaysTotals = myDimensionDate.top( 1 );
-                        //var thisDaysTotals = source_group.top( 1 );
+                        //var thisDaysTotals = sourceGroup.top( 1 );
                         numsToAverage++;
                         thisCumulate += targetDay.value;
                         thisResult.push( { 'key': targetDay.key, 'value': targetDay.value } );
@@ -135,15 +138,15 @@ crossfilterMA.accumulate_group_for_nday_moving_average = function(source_group, 
                         'result': result
                     }
                 };
-            });
+            } );
 
             return accumulatedAll;
         },
         top: function() {
             var cumulate = 0;
             var result = [];
-            return source_group.top.apply( source_group, arguments ).map(function(d, i, arr) {
-                console.log(this, arguments);
+            return sourceGroup.top.apply( sourceGroup, arguments ).map( function( d, i, arr ) {
+                console.log( this, arguments );
                 cumulate += d.value;
                 result.push( { 'key': d.key, 'value': d.value } );
                 return {
@@ -153,15 +156,15 @@ crossfilterMA.accumulate_group_for_nday_moving_average = function(source_group, 
                         'result': result
                     }
                 };
-            });
+            } );
         }
     };
 };
 
 
 
-crossfilterMA.accumulate_group_for_2day_moving_average = function(source_group) {
-    return crossfilterMA.accumulate_group_for_nday_moving_average(source_group, 2);
+crossfilterMA.accumulateGroupFor2DayMovingAverage = function( sourceGroup ) {
+    return crossfilterMA.accumulateGroupForNDayMovingAverage( sourceGroup, 2 );
 };
 
 

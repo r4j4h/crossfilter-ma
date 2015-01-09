@@ -72,7 +72,6 @@
     "!=",
     "!=="
   ],
-  "requireSpaceAfterLineComment": { "allExcept": ["#", "="] },
   "requireSpaceBeforeBlockStatements": true,
   "requireSpaceAfterBinaryOperators": true,
   "requireSpacesInConditionalExpression": true,

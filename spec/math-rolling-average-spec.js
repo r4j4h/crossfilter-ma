@@ -50,7 +50,7 @@ describe('math-rolling-average', function() {
 
     it('calculate 2 point rolling average over a set of numbers', function() {
 
-        var rollingAverageFakeGroup = crossfilterMa.accumulate_group_for_2day_moving_average( groupVisitsByDate );
+        var rollingAverageFakeGroup = crossfilterMa.accumulateGroupFor2DayMovingAverage( groupVisitsByDate );
 
         var results = rollingAverageFakeGroup.all();
 
@@ -77,7 +77,7 @@ describe('math-rolling-average', function() {
 
     it('calculate 3 point rolling average over set of numbers', function() {
 
-        var rollingAverageFakeGroup = crossfilterMa.accumulate_group_for_nday_moving_average( groupVisitsByDate, 3 );
+        var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 3 );
 
         var results = rollingAverageFakeGroup.all();
 
