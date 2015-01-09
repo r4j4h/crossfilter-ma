@@ -1,7 +1,7 @@
 crossfilter.ma
 =====
 
-crossfilter.ma is a _crossfilter group_ modifier (in _reductio_-like fashion) to calculate _moving averages_.
+crossfilter.ma is a [_crossfilter group_ modifier](https://github.com/dc-js/dc.js/wiki/FAQ#filter-the-data-before-its-charted) to calculate _moving averages_.
 
 
 How to Install
@@ -17,6 +17,14 @@ How to Install
 How to Use
 ----
 
+```
+var data = crossfilter([...]);
+var dim = data.dimension(...);
+var group = dim.group();
+var ma;
+
+
+```
 _TODO_
 
 
@@ -31,7 +39,9 @@ How to Test
 Inspired By
 ----
 
-- [dc.js](dc-js.github.io/dc.js/)
+- [dc.js](https://github.com/dc-js/dc.js)
+  - [Specifically this portion of the FAQ](https://github.com/dc-js/dc.js/wiki/FAQ#filter-the-data-before-its-charted)
 - [reductio](https://github.com/esjewett/reductio)
+  - An approach towards averages on crossfilter groups
 - [crossfilter](https://github.com/square/crossfilter)
-- [d3](d3js.org)
+- [d3](https://github.com/mbostock/d3)
