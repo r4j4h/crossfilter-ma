@@ -3,6 +3,7 @@ crossfilter.ma
 
 crossfilter.ma is a _crossfilter group_ modifier (in _reductio_-like fashion) to calculate _moving averages_.
 
+
 How to Install
 ----
 
@@ -12,14 +13,25 @@ How to Install
 - Copy `crossfilter.ma.js` to your scripts directory and provide it on your page
 - Use it!
 
+
 How to Use
 ----
 
 _TODO_
 
+
 How to Test
 ----
 
-Run `grunt test`.
-Run `grunt server` and visit `http://0.0.0.0:8888/spec/`
-Run `grunt coverage` and then `grunt server` and visit `http://0.0.0.0:8888/coverage/
+- Run `grunt test`.
+- Run `grunt server` and visit `http://0.0.0.0:8888/spec/`
+- Run `grunt coverage` and then `grunt server` and visit `http://0.0.0.0:8888/coverage/
+
+
+Inspired By
+----
+
+- [dc.js](dc-js.github.io/dc.js/)
+- [reductio](https://github.com/esjewett/reductio)
+- [crossfilter](https://github.com/square/crossfilter)
+- [d3](d3js.org)
