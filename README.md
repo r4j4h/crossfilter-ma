@@ -9,17 +9,16 @@ How to Install
 - Ensure requirements are provided on your page
   - crossfilter
   - reductio
-- Copy `dist/crossfilter.ma.js` to your scripts directory and provide it on your page
+- Copy `crossfilter.ma.js` to your scripts directory and provide it on your page
 - Use it!
 
 How to Use
 ----
 
-Take your crossfilter
+Here's a starting example:
 
 
 ```
-
 var data = [
     {date: "2011-11-14T16:17:54Z", quantity: 2, total: 190, tip: 100, type: "tab"},
     {date: "2011-11-14T16:20:19Z", quantity: 2, total: 190, tip: 100, type: "tab"},
