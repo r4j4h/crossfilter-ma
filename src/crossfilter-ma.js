@@ -21,7 +21,3 @@ var crossfilterMA = {
     },
     _renderlet: null
 };
-
-crossfilterMA[ 'crossfilter-ma' ] = function() {
-    return 'hello world';
-};

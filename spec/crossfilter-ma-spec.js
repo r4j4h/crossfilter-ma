@@ -21,13 +21,6 @@ describe('crossfilter-ma', function() {
 
     });
 
-    it('says hello', function() {
-
-        var response = crossfilterMa['crossfilter-ma']();
-
-        expect( response ).toBe('hello world');
-    });
-
     it('takes a crossfilter group', function() {
 
     });
