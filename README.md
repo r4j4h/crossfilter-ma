@@ -39,7 +39,7 @@ var dim = data.dimension(function (d) {
     return d.date
 });
 var group = dim.group().reduceSum( function(d) { return d.visits; } );
-var ma = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 2 );
+var ma = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 3 );
 
 var resultsWithRollingAverages = rollingAverageFakeGroup.all();
 
@@ -50,14 +50,19 @@ expect( resultsWithRollingAverages[1].key ).toBe( '2012-01-12' );
 expect( resultsWithRollingAverages[1].value ).toBe( 2.5 );
 
 expect( resultsWithRollingAverages[2].key ).toBe( '2012-01-13' );
-expect( resultsWithRollingAverages[2].value ).toBe( 6.5 );
+expect( resultsWithRollingAverages[2].value ).toBe( 5 );
 
 expect( resultsWithRollingAverages[3].key ).toBe( '2012-01-14' );
-expect( resultsWithRollingAverages[3].value ).toBe( 6.5 );
+expect( resultsWithRollingAverages[3].value ).toBe( 5.333333333333333 );
 
 expect( resultsWithRollingAverages[4].key ).toBe( '2012-01-15' );
-expect( resultsWithRollingAverages[4].value ).toBe( 6.5 );
+expect( resultsWithRollingAverages[4].value ).toBe( 7.666666666666667 );
 
+expect( resultsWithRollingAverages[5].key ).toBe( '2012-01-15' );
+expect( resultsWithRollingAverages[5].value ).toBe( 8.333333333333334 );
+
+expect( resultsWithRollingAverages[6].key ).toBe( '2012-01-15' );
+expect( resultsWithRollingAverages[6].value ).toBe( 9.666666666666666 );
 ```
 
 
