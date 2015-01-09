@@ -6,11 +6,11 @@
   "scripts": {
     "test": "grunt test"
   },
-  "homepage": "https://gitlab.webpt.com/r4j4h/crossfilter-ma/",
-  "bugs": "https://gitlab.webpt.com/r4j4h/crossfilter-ma/issues",
+  "homepage": "https://github.com/r4j4h/crossfilter-ma",
+  "bugs": "https://github.com/r4j4h/crossfilter-ma/issues",
   "repository": {
     "type": "git",
-    "url": "git@gitlab.webpt.com:r4j4h/crossfilter-ma.git"
+    "url": "git@github.com:r4j4h/crossfilter-ma.git"
   },
   "keywords": [
     "javascript",
