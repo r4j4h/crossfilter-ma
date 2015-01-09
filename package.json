@@ -1,0 +1,44 @@
+{
+  "name": "crossfilter-ma",
+  "version": "1.0.0-dev",
+  "description": "crossfilter-ma is a crossfilter group modifier (in reductio-like fashion) to calculate moving averages.",
+  "main": "crossfilter-ma.js",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "homepage": "https://gitlab.webpt.com/r4j4h/crossfilter-ma/",
+  "bugs": "https://gitlab.webpt.com/r4j4h/crossfilter-ma/issues",
+  "repository": {
+    "type": "git",
+    "url": "git@gitlab.webpt.com:r4j4h/crossfilter-ma.git"
+  },
+  "keywords": [
+    "javascript",
+    "crossfilter",
+    "moving",
+    "averages"
+  ],
+  "author": "Jasmine Hegman",
+  "license": "MIT",
+  "dependencies": {
+    "crossfilter": "1.x"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-browserify": "^3.2.1",
+    "grunt-cli": "^0.1.13",
+    "grunt-contrib-concat": "^0.5.0",
+    "grunt-contrib-connect": "^0.9.0",
+    "grunt-contrib-copy": "^0.7.0",
+    "grunt-contrib-jasmine": "^0.8.2",
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-contrib-uglify": "^0.7.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-debug-task": "^0.1.5",
+    "grunt-markdown": "^0.6.1",
+    "grunt-sed": "^0.1.1",
+    "grunt-shell": "^1.1.1",
+    "marked": "^0.3.2",
+    "uglify-js": "^2.4.16"
+  }
+}
