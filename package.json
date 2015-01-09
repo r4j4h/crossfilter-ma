@@ -21,7 +21,8 @@
   "author": "Jasmine Hegman",
   "license": "MIT",
   "dependencies": {
-    "crossfilter": "1.x"
+    "crossfilter": "1.x",
+    "d3": "^3.5.3"
   },
   "devDependencies": {
     "grunt": "^0.4.5",
@@ -35,9 +36,11 @@
     "grunt-contrib-uglify": "^0.7.0",
     "grunt-contrib-watch": "^0.6.1",
     "grunt-debug-task": "^0.1.5",
+    "grunt-jscs": "^1.1.0",
     "grunt-markdown": "^0.6.1",
     "grunt-sed": "^0.1.1",
     "grunt-shell": "^1.1.1",
+    "grunt-template-jasmine-istanbul": "^0.3.0",
     "marked": "^0.3.2",
     "uglify-js": "^2.4.16"
   }
