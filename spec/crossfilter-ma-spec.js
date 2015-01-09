@@ -13,9 +13,9 @@ describe('crossfilter-ma', function() {
         crossfilterMa = null;
     });
 
-    it('is a function', function() {
+    it('provides a rolling average function', function() {
 
-        var meh = crossfilterMa['crossfilter-ma'];
+        var meh = crossfilterMa.accumulateGroupForNDayMovingAverage;
 
         expect( typeof meh ).toBe( 'function' );
 
