@@ -74,6 +74,7 @@
   ],
   "requireSpaceBeforeBlockStatements": true,
   "requireSpaceAfterBinaryOperators": true,
+  "requireSpaceBeforeObjectValues": true,
   "requireSpacesInConditionalExpression": true,
   "requireSpacesInFunctionExpression": {
     "beforeOpeningCurlyBrace": true
