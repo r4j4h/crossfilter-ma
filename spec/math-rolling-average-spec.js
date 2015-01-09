@@ -32,8 +32,6 @@ describe('math-rolling-average', function() {
             return d.date
         });
         groupVisitsByDate = dimensionDate.group().reduceSum( function(d) { return d.visits; } );
-
-        groupForTesting = dimensionDate.group();
     });
 
     afterEach(function() {
@@ -41,7 +39,6 @@ describe('math-rolling-average', function() {
         crossfilterInstance = null;
         dimensionDate = null;
         groupVisitsByDate = null;
-        groupForTesting = null;
 
         global = null;
         crossfilterMa = null;
