@@ -1,7 +1,7 @@
 /*!
- *  dc %VERSION%
- *  http://dc-js.github.io/dc.js/
- *  Copyright 2012 Nick Zhu and other contributors
+ *  crossfilter-ma %VERSION%
+ *  https://github.com/r4j4h/crossfilter-ma
+ *  Copyright 2015 Jasmine Hegman
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.

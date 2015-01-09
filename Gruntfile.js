@@ -105,9 +105,9 @@ module.exports = function ( grunt ) {
                     'crossfilter-ma.js'
                 ]
             },
-            coverage:{
+            coverage: {
                 src: '<%= jasmine.specs.src %>',
-                options:{
+                options: {
                     specs: '<%= jasmine.specs.options.specs %>',
                     helpers: '<%= jasmine.specs.options.helpers %>',
                     version: '<%= jasmine.specs.options.version %>',

@@ -7,16 +7,19 @@ var crossfilterMA = crossfilterMA || {};
  * TODO Make date centric that is less performant but works w/ unordered groups and redundant keyed groups
  *
  * @param {{all: Function, top: Function}} sourceGroup Crossfilter group
- * @param {Number} ndays Number of datapoints for moving average
+ * @param {Number} [ndays] Number of datapoints for moving average. Defaults to the current value of
+ * crossfilterMA.constants.DEFAULT_MOVING_AVERAGE_NODES if not provided.
  * @returns {{all: Function, top: Function}}
  */
 crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays ) {
+    // Handle defaults
+    ndays = ( typeof ndays !== 'undefined' ) ? ndays : crossfilterMA.constants.DEFAULT_MOVING_AVERAGE_NODES;
     return {
-        all:function () {
+
+        all: function () {
             var cumulate = 0;
             var result = [];
             var all = sourceGroup.all();
-            console.log( 'test', sourceGroup, all );
             var accumulatedAll = all.map( function( d, i, arr ) {
 
                 // find previous 2 days
@@ -74,7 +77,7 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 return {
                     key: d.key,
                     value: thisAverage,
-                    debug:{
+                    debug: {
                         'cumulate': cumulate,
                         thisResult: thisResult,
                         'result': result
@@ -84,16 +87,16 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
 
             return accumulatedAll;
         },
+
         top: function() {
             var cumulate = 0;
             var result = [];
             return sourceGroup.top.apply( sourceGroup, arguments ).map( function( d, i, arr ) {
-                console.log( this, arguments );
                 cumulate += d.value;
                 result.push( { 'key': d.key, 'value': d.value } );
                 return {
                     key: d.key,
-                    value:{
+                    value: {
                         'cumulate': cumulate,
                         'result': result
                     }
@@ -101,10 +104,4 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
             } );
         }
     };
-};
-
-
-
-crossfilterMA.accumulateGroupFor2DayMovingAverage = function( sourceGroup ) {
-    return crossfilterMA.accumulateGroupForNDayMovingAverage( sourceGroup, 2 );
 };
