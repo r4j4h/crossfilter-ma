@@ -13,12 +13,26 @@ var crossfilterMA = crossfilterMA || {};
  */
 crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays ) {
     if ( !sourceGroup || !sourceGroup.all || typeof sourceGroup.all !== 'function' ) {
-        throw new Error('You must pass in a crossfilter group!');
+        throw new Error( 'You must pass in a crossfilter group!' );
     }
 
     // Handle defaults
     ndays = ( typeof ndays !== 'undefined' ) ? ndays : crossfilterMA.constants.DEFAULT_MOVING_AVERAGE_NODES;
+
     return {
+
+        /**
+         * Set or get the number of units used in the moving/rolling average calculation.
+         *
+         * @param {Number} [_]
+         * @returns {Number}
+         */
+        ndays: function( _ ) {
+            if ( typeof _ === 'undefined' ) {
+                return ndays;
+            }
+            ndays = _;
+        },
 
         all: function () {
             var cumulate = 0;
@@ -27,7 +41,6 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
 
                 // find previous 2 days
                 var days = ndays;
-                var thisDay = 0;
 
                 var numsToAverage = 0;
                 var thisCumulate = 0;

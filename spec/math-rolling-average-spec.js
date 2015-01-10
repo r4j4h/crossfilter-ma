@@ -97,22 +97,48 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
     });
 
-    describe('all()', function() {
 
+    describe('ndays()', function() {
 
+        it('returns the current number of days', function() {
 
-        it('defaults to constants point if none is provided', function() {
+            var firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+            expect( firstRollingAverageFakeGroup.ndays() ).toBe( crossfilterMa.constants.DEFAULT_MOVING_AVERAGE_NODES );
+
+        });
+
+        it('allows to set the current number of days', function() {
+
+            var firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+            expect( firstRollingAverageFakeGroup.ndays() ).toBe( crossfilterMa.constants.DEFAULT_MOVING_AVERAGE_NODES );
+            firstRollingAverageFakeGroup.ndays(13);
+            expect( firstRollingAverageFakeGroup.ndays() ).toBe( 13 );
+            expect( firstRollingAverageFakeGroup.ndays() ).not.toBe( crossfilterMa.constants.DEFAULT_MOVING_AVERAGE_NODES );
+
+        });
+
+        it('defaults to constants point at creation time if none is provided', function() {
             // Cache actual
             var currentConstant = crossfilterMa.constants.DEFAULT_MOVING_AVERAGE_NODES;
 
             crossfilterMa.constants.DEFAULT_MOVING_AVERAGE_NODES = 6;
-            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+            var firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+            expect( firstRollingAverageFakeGroup.ndays() ).toBe( 6 );
 
 
+            crossfilterMa.constants.DEFAULT_MOVING_AVERAGE_NODES = 12;
+            var secondRollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+            expect( firstRollingAverageFakeGroup.ndays() ).toBe( 6 );
+            expect( secondRollingAverageFakeGroup.ndays() ).toBe( 12 );
 
             // Restore actual
             crossfilterMa.constants.DEFAULT_MOVING_AVERAGE_NODES = currentConstant;
         });
+
+    });
+
+
+    describe('all()', function() {
 
         it('calculate 2 point rolling average over a set of numbers', function() {
 
@@ -213,6 +239,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
         });
 
     });
+
 
     describe('top()', function() {
 
