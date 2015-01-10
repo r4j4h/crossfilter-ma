@@ -1,6 +1,6 @@
 {
   "name": "crossfilter-ma",
-  "version": "1.0.0-dev",
+  "version": "1.0.1-dev",
   "description": "crossfilter-ma is a crossfilter group modifier (in reductio-like fashion) to calculate moving averages.",
   "main": "crossfilter-ma.js",
   "scripts": {
