@@ -19,6 +19,13 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
     // Handle defaults
     ndays = ( typeof ndays !== 'undefined' ) ? ndays : crossfilterMA.constants.DEFAULT_MOVING_AVERAGE_NODES;
 
+    var keyAccessor = function( d ) {
+        return d.key;
+    };
+    var valueAccessor = function( d ) {
+        return d.value;
+    };
+
     return {
 
         /**
@@ -39,7 +46,7 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
             var all = sourceGroup.all();
             var accumulatedAll = all.map( function( d, i, arr ) {
 
-                // find previous 2 days
+                // find previous n days
                 var days = ndays;
 
                 var numsToAverage = 0;
@@ -47,22 +54,6 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 var thisAverage = 0;
 
                 var thisResult = [];
-
-                // let A be their totals and today's total summed together
-                // let B be A divided by 3 ( for the 2 previous days and today )
-
-                // B is the 2 day moving average of today
-
-
-                // Make a crossfilter of our full array of data
-
-
-                //var myDx = crossfilter( all );
-                //
-                //var myDimensionDate = myDx.dimension(function(d) {
-                //    return d.key;
-                //} );
-
 
                 while ( --days > 0 ) {
                     var targetDay =  arr[i - days];
@@ -106,11 +97,53 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
         top: function() {
             var cumulate = 0;
             var all = sourceGroup.top.apply( sourceGroup, arguments );
+            var fullDates = {};
+
+            var myDx = crossfilter( all );
+            var myDimensionDate = myDx.dimension( function( d ) {
+                return d.key;
+            } );
+            var myGroupingOnDate = myDimensionDate.group();
+
+            var reducer = myGroupingOnDate.reduce(
+                function ( p, v ) {
+                    var selDate = keyAccessor( v );
+                    var selValue = valueAccessor( v );
+
+                    if ( fullDates[ selDate ] ) {
+                        fullDates[ selDate ].myValue += selValue;
+                    } else {
+                        fullDates[ selDate ] = {
+                            myValue: selValue
+                        };
+                    }
+                    return p;
+                },
+                function ( p, v ) {
+                    var selDate = keyAccessor( v );
+                    var selValue = valueAccessor( v );
+
+                    if ( fullDates[ selDate ] ) {
+                        fullDates[ selDate ].quantity -= selValue;
+                    } else {
+                        delete fullDates[ selDate ];
+                    }
+                    return p;
+                },
+                function () {
+                    fullDates = {};
+                }
+            );
+
+            reducer.all();
+
             var accumulatedAll = all.map( function( d, i, arr ) {
 
-                // find previous 2 days
-                var days = ndays - 1;
-                var thisDay = 0;
+                var orderedDates = Object.keys( fullDates ).sort();
+                var thisDayIndex = orderedDates.indexOf( keyAccessor( d ) );
+
+                // find previous n-1 days
+                var days = ndays;
 
                 var numsToAverage = 0;
                 var thisCumulate = 0;
@@ -118,46 +151,28 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
 
                 var thisResult = [];
 
-                // let A be their totals and today's total summed together
-                // let B be A divided by 3 ( for the 2 previous days and today )
+                while ( --days > 0 ) {
+                    //var targetDay =  arr[i - thisDay];
+                    var targetDayId = orderedDates[ thisDayIndex - days ];
 
-                // B is the 2 day moving average of today
+                    if ( targetDayId ) {
+                        var targetDayBlock = fullDates[ targetDayId ];
+                        var targetDayValue = targetDayBlock.myValue;
 
-
-                // Make a crossfilter of our full array of data
-
-
-                //var myDx = crossfilter( all );
-                //
-                //var myDimensionDate = myDx.dimension(function(d) {
-                //    return d.key;
-                //} );
-
-
-                while ( thisDay++ < days ) {
-                    var targetDay =  arr[i - thisDay];
-                    if ( targetDay ) {
-
-
-                        //var momentedDate = moment( d.key );
-                        //momentedDate.subtract( thisDay, 'hours' );
-                        //myDimensionDate.filterExact( batchYear( momentedDate ) );
-                        //var thisDaysTotals = myDimensionDate.top( 1 );
-                        //var thisDaysTotals = sourceGroup.top( 1 );
                         numsToAverage++;
-                        thisCumulate += targetDay.value;
-                        thisResult.push( { 'key': targetDay.key, 'value': targetDay.value } );
-
+                        thisCumulate += targetDayValue;
+                        thisResult.push( { 'key': targetDayId, 'value': targetDayValue } );
                     }
                 }
 
                 numsToAverage++;
                 thisCumulate += d.value;
 
-                thisAverage = thisCumulate / numsToAverage;
 
                 cumulate += d.value;
                 thisResult.push( { 'key': d.key, 'value': d.value } );
+
+                thisAverage = thisCumulate / numsToAverage;
 
                 return {
                     key: d.key,
