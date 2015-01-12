@@ -6,6 +6,8 @@ describe('accumulateGroupForPercentageChange', function() {
     var setOfNumbers = [],
         crossfilterInstance,
         dimensionDate,
+        dimensionDateForFiltering,
+        dimensionVisitsForFiltering,
         groupVisitsByDate;
 
     /**
@@ -17,6 +19,12 @@ describe('accumulateGroupForPercentageChange', function() {
         crossfilterInstance = crossfilter( mockData );
         dimensionDate = crossfilterInstance.dimension(function (d) {
             return d.date
+        });
+        dimensionDateForFiltering = crossfilterInstance.dimension(function (d) {
+            return d.date
+        });
+        dimensionVisitsForFiltering = crossfilterInstance.dimension(function (d) {
+            return d.visits
         });
         groupVisitsByDate = dimensionDate.group().reduceSum( function(d) { return d.visits; } );
 
@@ -93,6 +101,8 @@ describe('accumulateGroupForPercentageChange', function() {
         setOfNumbers = [];
         crossfilterInstance = null;
         dimensionDate = null;
+        dimensionDateForFiltering = null;
+        dimensionVisitsForFiltering = null;
         groupVisitsByDate = null;
 
         global = null;
@@ -287,6 +297,34 @@ describe('accumulateGroupForPercentageChange', function() {
 
         });
 
+
+        it('supports filtering in crossfilter', function() {
+
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+
+            var results = percentageChangeFakeGroup.all();
+
+            expect( results[0].percentageChange ).toBe( 0 );
+            expect( results[1].percentageChange ).toBe( 50 );
+            expect( results[2].percentageChange ).toBe( 233.33333333333334 );
+            expect( results[3].percentageChange ).toBe( -70 );
+            expect( results[4].percentageChange ).toBe( 233.33333333333334 );
+            expect( results[5].percentageChange ).toBe( 20 );
+            expect( results[6].percentageChange ).toBe( -41.66666666666667 );
+
+            dimensionVisitsForFiltering.filterRange( [ 3,11 ] );
+
+            var results = percentageChangeFakeGroup.all();
+
+            expect( results[0].percentageChange ).toBe( 0 );
+            expect( results[1].percentageChange ).toBe( Infinity );
+            expect( results[2].percentageChange ).toBe( 233.33333333333334 );
+            expect( results[3].percentageChange ).toBe( -70 );
+            expect( results[4].percentageChange ).toBe( 233.33333333333334 );
+            expect( results[5].percentageChange ).toBe( -100 );
+            expect( results[6].percentageChange ).toBe( Infinity );
+
+        });
 
     });
 
@@ -495,6 +533,35 @@ describe('accumulateGroupForPercentageChange', function() {
 
             expect( results[3]._debug.thisDayKey ).toBe( '2012-01-11' );
             expect( results[3]._debug.prevDayKey ).toBe( 'None' );
+
+        });
+
+
+        it('supports filtering in crossfilter', function() {
+
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+
+            var results = percentageChangeFakeGroup.top(Infinity);
+
+            expect( results[0].percentageChange ).toBe( 20 );
+            expect( results[1].percentageChange ).toBe( 233.33333333333334 );
+            expect( results[2].percentageChange ).toBe( 233.33333333333334 );
+            expect( results[3].percentageChange ).toBe( -41.66666666666667 );
+            expect( results[4].percentageChange ).toBe( -70 );
+            expect( results[5].percentageChange ).toBe( 50 );
+            expect( results[6].percentageChange ).toBe( 0 );
+
+            dimensionVisitsForFiltering.filterRange( [ 3,11 ] );
+
+            var results = percentageChangeFakeGroup.top(Infinity);
+
+            expect( results[0].percentageChange ).toBe( 233.33333333333334 );
+            expect( results[1].percentageChange ).toBe( 233.33333333333334 );
+            expect( results[2].percentageChange ).toBe( Infinity );
+            expect( results[3].percentageChange ).toBe( -70 );
+            expect( results[4].percentageChange ).toBe( Infinity );
+            expect( results[5].percentageChange ).toBe( -100 );
+            expect( results[6].percentageChange ).toBe( 0 );
 
         });
 
