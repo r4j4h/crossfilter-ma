@@ -76,8 +76,12 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup ) {
 
                 if ( prevDay ) {
                     var diff = valueAccessor( thisDay ) - valueAccessor( prevDay );
-                    var prop = diff / valueAccessor( prevDay );
-                    perc = prop * 100;
+                    if ( diff !== 0 ) {
+                        var prop = diff / valueAccessor( prevDay );
+                        perc = prop * 100;
+                    } else {
+                        perc = 0;
+                    }
                 }
 
                 return {
@@ -154,8 +158,13 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup ) {
                     prevDayValue = prevDayBlock.myValue;
 
                     var diff = valueAccessor( thisDay ) - prevDayValue;
-                    var prop = diff / prevDayValue;
-                    perc = prop * 100;
+
+                    if ( diff !== 0 ) {
+                        var prop = diff / prevDayValue;
+                        perc = prop * 100;
+                    } else {
+                        perc = 0;
+                    }
                 }
 
                 return {
