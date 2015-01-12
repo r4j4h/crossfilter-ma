@@ -197,5 +197,6 @@ module.exports.jsFiles = [
     'src/banner.js',
     'src/crossfilter-ma.js',
     'src/math-rolling-average.js',
+    'src/percentage-change.js',
     'src/footer.js'
 ];
