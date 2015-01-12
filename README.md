@@ -29,7 +29,7 @@ only 2 days. In that case, this falls back to a 2 day moving average, or just th
 __TODO:__ _Make this behavior configurable and remove this preface._
 
 
-```
+```javascript
 var data = [
     { date: "2012-01-11", visits: 2  }, // 2 point  | 3 point
     { date: "2012-01-12", visits: 3  }, // 2.5      | null
@@ -84,7 +84,7 @@ expect( resultsWithRollingAverages[6].rollingAverage ).toBe( 9.666666666666666 )
 Calculating Percent Change
 ---
 
-```
+```javascript
 var data = [
     { date: "2012-01-11", visits: 2  },
     { date: "2012-01-12", visits: 3  },
