@@ -7,7 +7,7 @@ var crossfilterMA = crossfilterMA || {};
  * TODO Remove date and make only iterative
  * TODO Make date centric that is less performant but works w/ unordered groups and redundant keyed groups
  *
- * @param {{all: Function, top: Function}} sourceGroup Crossfilter group
+ * @param {{all: Function, top: Function}} sourceGroup Crossfilter group.
  * crossfilterMA.constants.DEFAULT_MOVING_AVERAGE_NODES if not provided.
  * @param {Boolean} [debugMode] Includes a debugging object under the `_debug` key in the result objects, defaults to
  * false.
@@ -41,7 +41,7 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
             if ( typeof _ === 'undefined' ) {
                 return debugMode;
             }
-            debugMode = _;
+            debugMode = !!_;
         },
 
         all: function () {

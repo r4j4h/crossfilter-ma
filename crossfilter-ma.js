@@ -42,14 +42,15 @@ var crossfilterMA = crossfilterMA || {};
  * TODO Remove date and make only iterative
  * TODO Make date centric that is less performant but works w/ unordered groups and redundant keyed groups
  *
- * @param {{all: Function, top: Function}} sourceGroup Crossfilter group
+ * @param {{all: Function, top: Function}} sourceGroup Crossfilter group.
  * @param {Number} [ndays] Number of datapoints for moving average. Defaults to the current value of
  * crossfilterMA.constants.DEFAULT_MOVING_AVERAGE_NODES if not provided.
+ * @param {Boolean} [rolldownMode] Rolls the average smaller when the request duration is not available.
  * @param {Boolean} [debugMode] Includes a debugging object under the `_debug` key in the result objects, defaults to
  * false.
  * @returns {{all: Function, top: Function}}
  */
-crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays, debugMode ) {
+crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays, rolldownMode, debugMode ) {
     if ( !sourceGroup || !sourceGroup.all || typeof sourceGroup.all !== 'function' ) {
         throw new Error( 'You must pass in a crossfilter group!' );
     }
@@ -57,6 +58,7 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
     // Handle defaults
     ndays = ( typeof ndays !== 'undefined' ) ? ndays : crossfilterMA.constants.DEFAULT_MOVING_AVERAGE_NODES;
     debugMode = ( typeof debugMode !== 'undefined' ) ? !!debugMode : false;
+    rolldownMode = ( typeof rolldownMode !== 'undefined' ) ? !!rolldownMode : false;
 
     var keyAccessor = function( d ) {
         return d.key;
@@ -81,6 +83,20 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
         },
 
         /**
+         * Set or get the state of the rolldown flag, used to gain a moving average albeit of lesser length than
+         * requested.
+         *
+         * @param {Number} [_]
+         * @returns {Number}
+         */
+        rolldown: function( _ ) {
+            if ( typeof _ === 'undefined' ) {
+                return rolldownMode;
+            }
+            rolldownMode = !!_;
+        },
+
+        /**
          * Set or get the state of the debugging flag, used to include a debugging object under the `_debug` key in
          * the result objects, defaults to false.
          *
@@ -91,7 +107,7 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
             if ( typeof _ === 'undefined' ) {
                 return debugMode;
             }
-            debugMode = _;
+            debugMode = !!_;
         },
 
         all: function () {
@@ -110,14 +126,13 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
 
                 while ( --days > 0 ) {
                     var targetDay =  arr[i - days];
+
+                    if ( !targetDay && !rolldownMode ) {
+                        break;
+                    }
+
                     if ( targetDay ) {
 
-
-                        //var momentedDate = moment( d.key );
-                        //momentedDate.subtract( thisDay, 'hours' );
-                        //myDimensionDate.filterExact( batchYear( momentedDate ) );
-                        //var thisDaysTotals = myDimensionDate.top( 1 );
-                        //var thisDaysTotals = sourceGroup.top( 1 );
                         numsToAverage++;
                         thisCumulate += targetDay.value;
                         if ( debugMode ) {
@@ -126,6 +141,7 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
 
                     }
                 }
+
 
                 numsToAverage++;
                 thisCumulate += d.value;
@@ -136,6 +152,10 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 }
 
                 thisAverage = thisCumulate / numsToAverage;
+
+                if ( numsToAverage < ndays && !rolldownMode ) {
+                    thisAverage = 0;
+                }
 
                 var returnObj = {
                     key           : d.key,
@@ -217,6 +237,10 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                     //var targetDay =  arr[i - thisDay];
                     var targetDayId = orderedDates[ thisDayIndex - days ];
 
+                    if ( !targetDayId && !rolldownMode ) {
+                        break;
+                    }
+
                     if ( targetDayId ) {
                         var targetDayBlock = fullDates[ targetDayId ];
                         var targetDayValue = targetDayBlock.myValue;
@@ -240,6 +264,10 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 }
 
                 thisAverage = thisCumulate / numsToAverage;
+
+                if ( numsToAverage < ndays && !rolldownMode ) {
+                    thisAverage = 0;
+                }
 
                 var returnObj = {
                     key: d.key,
@@ -271,7 +299,7 @@ var crossfilterMA = crossfilterMA || {};
  * TODO Remove date and make only iterative
  * TODO Make date centric that is less performant but works w/ unordered groups and redundant keyed groups
  *
- * @param {{all: Function, top: Function}} sourceGroup Crossfilter group
+ * @param {{all: Function, top: Function}} sourceGroup Crossfilter group.
  * crossfilterMA.constants.DEFAULT_MOVING_AVERAGE_NODES if not provided.
  * @param {Boolean} [debugMode] Includes a debugging object under the `_debug` key in the result objects, defaults to
  * false.
@@ -305,7 +333,7 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
             if ( typeof _ === 'undefined' ) {
                 return debugMode;
             }
-            debugMode = _;
+            debugMode = !!_;
         },
 
         all: function () {

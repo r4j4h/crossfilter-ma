@@ -130,19 +130,37 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
         });
 
-        it('allows configuring debug flag', function() {
+        it('allows configuring rolldown flag', function() {
 
             var firstRollingAverageFakeGroup;
 
             firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( { all: function() {} }, undefined, undefined );
 
-            expect( firstRollingAverageFakeGroup._debug() ).toBeFalsy();
+            expect( firstRollingAverageFakeGroup.rolldown() ).toBeFalsy();
 
             firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( { all: function() {} }, undefined, false );
 
-            expect( firstRollingAverageFakeGroup._debug() ).toBeFalsy();
+            expect( firstRollingAverageFakeGroup.rolldown() ).toBeFalsy();
 
             firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( { all: function() {} }, undefined, true );
+
+            expect( firstRollingAverageFakeGroup.rolldown() ).toBeTruthy();
+
+        });
+
+        it('allows configuring debug flag', function() {
+
+            var firstRollingAverageFakeGroup;
+
+            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( { all: function() {} }, undefined, undefined, undefined );
+
+            expect( firstRollingAverageFakeGroup._debug() ).toBeFalsy();
+
+            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( { all: function() {} }, undefined, undefined, false );
+
+            expect( firstRollingAverageFakeGroup._debug() ).toBeFalsy();
+
+            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( { all: function() {} }, undefined, undefined, true );
 
             expect( firstRollingAverageFakeGroup._debug() ).toBeTruthy();
 
@@ -191,6 +209,45 @@ describe('accumulateGroupForNDayMovingAverage', function() {
     });
 
 
+    describe('rolldown()', function() {
+
+        describe('when given no parameters', function() {
+
+            it('returns the current state of the rolldown flag', function() {
+
+                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+
+                expect( percentageChangeFakeGroup.rolldown() ).toBeFalsy();
+
+            });
+
+        });
+
+        describe('when given parameters', function() {
+
+            it('takes boolean coerce-able parameters as the new state of the rolldown flag', function() {
+
+                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+
+                percentageChangeFakeGroup.rolldown( true );
+
+                expect( percentageChangeFakeGroup.rolldown() ).toBeTruthy();
+
+            });
+
+        });
+
+        it('defaults to off', function() {
+
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+
+            expect( percentageChangeFakeGroup.rolldown() ).toBeFalsy();
+
+        });
+
+    });
+
+
     describe('_debug()', function() {
 
         describe('when given no parameters', function() {
@@ -221,7 +278,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
         it('defaults to off', function() {
 
-            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
 
             expect( percentageChangeFakeGroup._debug() ).toBeFalsy();
 
@@ -240,7 +297,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             var results = rollingAverageFakeGroup.all();
 
             expect( results[0].key ).toBe( '2012-01-11' );
-            expect( results[0].rollingAverage ).toBe( 2 );
+            expect( results[0].rollingAverage ).toBe( 0 );
             expect( results[0]._debug.thisResult.length ).toBe( 1 );
             expect( results[1].key ).toBe( '2012-01-12' );
             expect( results[1].rollingAverage ).toBe( 2.5 );
@@ -270,11 +327,11 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             var results = rollingAverageFakeGroup.all();
 
             expect( results[0].key ).toBe( '2012-01-11' );
-            expect( results[0].rollingAverage ).toBe( 2 );
+            expect( results[0].rollingAverage ).toBe( 0 );
             expect( results[0]._debug.thisResult.length ).toBe( 1 );
             expect( results[1].key ).toBe( '2012-01-12' );
-            expect( results[1].rollingAverage ).toBe( 2.5 );
-            expect( results[1]._debug.thisResult.length ).toBe( 2 );
+            expect( results[1].rollingAverage ).toBe( 0 );
+            expect( results[1]._debug.thisResult.length ).toBe( 1 );
             expect( results[2].key ).toBe( '2012-01-13' );
             expect( results[2].rollingAverage ).toBe( 5 );
             expect( results[2]._debug.thisResult.length ).toBe( 3 );
@@ -328,9 +385,8 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             expect( results[0]._debug.thisResult.length ).toBe( 1 );
             expect( results[0]._debug.thisResult[ 0 ].key ).toBe( results[ 0 ].key );
-            expect( results[1]._debug.thisResult.length ).toBe( 2 );
-            expect( results[1]._debug.thisResult[ 0 ].key ).toBe( results[ 0 ].key );
-            expect( results[1]._debug.thisResult[ 1 ].key ).toBe( results[ 1 ].key );
+            expect( results[1]._debug.thisResult.length ).toBe( 1 );
+            expect( results[1]._debug.thisResult[ 0 ].key ).toBe( results[ 1 ].key );
             expect( results[2]._debug.thisResult.length ).toBe( 3 );
             expect( results[2].key ).toBe( '2012-01-13' );
             expect( results[2]._debug.thisResult[ 0 ].key ).toBe( results[ 0 ].key );
@@ -351,11 +407,11 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             var results = percentageChangeFakeGroup.all();
 
             expect( results[0].key ).toBe( '2012-01-11' );
-            expect( results[0].rollingAverage ).toBe( 2 );
+            expect( results[0].rollingAverage ).toBe( 0 );
             expect( results[0]._debug.thisResult.length ).toBe( 1 );
             expect( results[1].key ).toBe( '2012-01-12' );
-            expect( results[1].rollingAverage ).toBe( 2.5 );
-            expect( results[1]._debug.thisResult.length ).toBe( 2 );
+            expect( results[1].rollingAverage ).toBe( 0 );
+            expect( results[1]._debug.thisResult.length ).toBe( 1 );
             expect( results[2].key ).toBe( '2012-01-13' );
             expect( results[2].rollingAverage ).toBe( 5 );
             expect( results[2]._debug.thisResult.length ).toBe( 3 );
@@ -377,8 +433,8 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             expect( results[0].rollingAverage ).toBe( 0 );
             expect( results[0]._debug.thisResult.length ).toBe( 1 );
             expect( results[1].key ).toBe( '2012-01-12' );
-            expect( results[1].rollingAverage ).toBe( 1.5 );
-            expect( results[1]._debug.thisResult.length ).toBe( 2 );
+            expect( results[1].rollingAverage ).toBe( 0 );
+            expect( results[1]._debug.thisResult.length ).toBe( 1 );
             expect( results[2].key ).toBe( '2012-01-13' );
             expect( results[2].rollingAverage ).toBeCloseTo( 4.333333333333333 );
             expect( results[2]._debug.thisResult.length ).toBe( 3 );
@@ -410,6 +466,60 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
         });
 
+        it('supports rolldown', function() {
+
+            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 3 );
+            rollingAverageFakeGroup._debug( true );
+            rollingAverageFakeGroup.rolldown( false );
+
+            var results = rollingAverageFakeGroup.all();
+
+            expect( results[0].key ).toBe( '2012-01-11' );
+            expect( results[0].rollingAverage ).toBe( 0 );
+            expect( results[0]._debug.thisResult.length ).toBe( 1 );
+            expect( results[1].key ).toBe( '2012-01-12' );
+            expect( results[1].rollingAverage ).toBe( 0 );
+            expect( results[1]._debug.thisResult.length ).toBe( 1 );
+            expect( results[2].key ).toBe( '2012-01-13' );
+            expect( results[2].rollingAverage ).toBe( 5 );
+            expect( results[2]._debug.thisResult.length ).toBe( 3 );
+            expect( results[3].key ).toBe( '2012-01-14' );
+            expect( results[3].rollingAverage ).toBeCloseTo( 5.333333333333333 );
+            expect( results[3]._debug.thisResult.length ).toBe( 3 );
+            expect( results[4].key ).toBe( '2012-01-15' );
+            expect( results[4].rollingAverage ).toBeCloseTo( 7.666666666666667 );
+            expect( results[5].key ).toBe( '2012-01-16' );
+            expect( results[5].rollingAverage ).toBeCloseTo( 8.333333333333334 );
+            expect( results[6].key ).toBe( '2012-01-17' );
+            expect( results[6].rollingAverage ).toBeCloseTo( 9.666666666666666 );
+
+
+            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 3 );
+            rollingAverageFakeGroup._debug( true );
+            rollingAverageFakeGroup.rolldown( true );
+
+            var results = rollingAverageFakeGroup.all();
+
+            expect( results[0].key ).toBe( '2012-01-11' );
+            expect( results[0].rollingAverage ).toBe( 2 );
+            expect( results[0]._debug.thisResult.length ).toBe( 1 );
+            expect( results[1].key ).toBe( '2012-01-12' );
+            expect( results[1].rollingAverage ).toBe( 2.5 );
+            expect( results[1]._debug.thisResult.length ).toBe( 2 );
+            expect( results[2].key ).toBe( '2012-01-13' );
+            expect( results[2].rollingAverage ).toBe( 5 );
+            expect( results[2]._debug.thisResult.length ).toBe( 3 );
+            expect( results[3].key ).toBe( '2012-01-14' );
+            expect( results[3].rollingAverage ).toBeCloseTo( 5.333333333333333 );
+            expect( results[3]._debug.thisResult.length ).toBe( 3 );
+            expect( results[4].key ).toBe( '2012-01-15' );
+            expect( results[4].rollingAverage ).toBeCloseTo( 7.666666666666667 );
+            expect( results[5].key ).toBe( '2012-01-16' );
+            expect( results[5].rollingAverage ).toBeCloseTo( 8.333333333333334 );
+            expect( results[6].key ).toBe( '2012-01-17' );
+            expect( results[6].rollingAverage ).toBeCloseTo( 9.666666666666666 );
+        });
+
     });
 
 
@@ -439,7 +549,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             expect( results[5].key ).toBe( '2012-01-12' );
             expect( results[5].rollingAverage ).toBe( 2.5 );
             expect( results[6].key ).toBe( '2012-01-11' );
-            expect( results[6].rollingAverage ).toBe( 2 );
+            expect( results[6].rollingAverage ).toBe( 0 );
             expect( results[6]._debug.thisResult.length ).toBe( 1 );
 
         });
@@ -466,9 +576,9 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             expect( results[4].key ).toBe( '2012-01-14' );
             expect( results[4].rollingAverage ).toBeCloseTo( 5.333333333333333 );
             expect( results[5].key ).toBe( '2012-01-12' );
-            expect( results[5].rollingAverage ).toBe( 2.5 );
+            expect( results[5].rollingAverage ).toBe( 0 );
             expect( results[6].key ).toBe( '2012-01-11' );
-            expect( results[6].rollingAverage ).toBe( 2 );
+            expect( results[6].rollingAverage ).toBe( 0 );
             expect( results[6]._debug.thisResult.length ).toBe( 1 );
 
         });
@@ -559,9 +669,8 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             expect( results[4]._debug.thisResult.length ).toBe( 3 );
 
             expect( results[5].key ).toBe( '2012-01-12' );
-            expect( results[5]._debug.thisResult.length ).toBe( 2 );
-            expect( results[5]._debug.thisResult[ 0 ].key ).toBe( '2012-01-11' );
-            expect( results[5]._debug.thisResult[ 1 ].key ).toBe( '2012-01-12' );
+            expect( results[5]._debug.thisResult.length ).toBe( 1 );
+            expect( results[5]._debug.thisResult[ 0 ].key ).toBe( '2012-01-12' );
 
             expect( results[6].key ).toBe( '2012-01-11' );
             expect( results[6]._debug.thisResult.length ).toBe( 1 );
@@ -582,6 +691,54 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             var results2 = percentageChangeFakeGroup.top(Infinity);
 
             expect( results2[0]._debug ).toBeDefined();
+
+        });
+
+        it('supports rolldown', function() {
+
+            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 3 );
+            rollingAverageFakeGroup._debug( true );
+            rollingAverageFakeGroup.rolldown( false );
+
+            var results = rollingAverageFakeGroup.top(Infinity);
+
+            expect( results[0].key ).toBe( '2012-01-16' );
+            expect( results[0]._debug.thisResult.length ).toBe( 3 );
+            expect( results[1]._debug.thisResult.length ).toBe( 3 );
+            expect( results[2].key ).toBe( '2012-01-13' );
+            expect( results[2]._debug.thisResult.length ).toBe( 3 );
+            expect( results[3].key ).toBe( '2012-01-17' );
+            expect( results[3].rollingAverage ).toBeCloseTo( 9.666666666666666 );
+            expect( results[3]._debug.thisResult.length ).toBe( 3 );
+            expect( results[4].key ).toBe( '2012-01-14' );
+            expect( results[4].rollingAverage ).toBeCloseTo( 5.333333333333333 );
+            expect( results[5].key ).toBe( '2012-01-12' );
+            expect( results[5].rollingAverage ).toBe( 0 );
+            expect( results[6].key ).toBe( '2012-01-11' );
+            expect( results[6].rollingAverage ).toBe( 0 );
+            expect( results[6]._debug.thisResult.length ).toBe( 1 );
+
+            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 3 );
+            rollingAverageFakeGroup._debug( true );
+            rollingAverageFakeGroup.rolldown( true );
+
+            var results = rollingAverageFakeGroup.top(Infinity);
+
+            expect( results[0].key ).toBe( '2012-01-16' );
+            expect( results[0]._debug.thisResult.length ).toBe( 3 );
+            expect( results[1]._debug.thisResult.length ).toBe( 3 );
+            expect( results[2].key ).toBe( '2012-01-13' );
+            expect( results[2]._debug.thisResult.length ).toBe( 3 );
+            expect( results[3].key ).toBe( '2012-01-17' );
+            expect( results[3].rollingAverage ).toBeCloseTo( 9.666666666666666 );
+            expect( results[3]._debug.thisResult.length ).toBe( 3 );
+            expect( results[4].key ).toBe( '2012-01-14' );
+            expect( results[4].rollingAverage ).toBeCloseTo( 5.333333333333333 );
+            expect( results[5].key ).toBe( '2012-01-12' );
+            expect( results[5].rollingAverage ).toBe( 2.5 );
+            expect( results[6].key ).toBe( '2012-01-11' );
+            expect( results[6].rollingAverage ).toBe( 2 );
+            expect( results[6]._debug.thisResult.length ).toBe( 1 );
 
         });
 
