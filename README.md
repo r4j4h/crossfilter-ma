@@ -513,4 +513,15 @@ Inspired By
 - [d3](https://github.com/mbostock/d3)
 
 
+FAQ
+=====
+
+
+// Sorting
+```javascript
+    var batchYear = function(momentDate) {
+        return momentDate.year() + '-' + momentDate.month() + '-' + ("00" + momentDate.hour()).slice(-2) ;
+    };
+```
+
 Thanks for reading! :o)
