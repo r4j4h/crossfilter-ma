@@ -9,7 +9,6 @@ How to Install
 
 - Ensure requirements are provided on your page
   - crossfilter
-  - reductio
 - Copy `crossfilter.ma.js` to your scripts directory and provide it on your page
 - Use it!
 
