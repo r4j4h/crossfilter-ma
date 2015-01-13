@@ -1121,6 +1121,221 @@ describe('accumulateGroupForPercentageChange', function() {
 
         });
 
+
+        describe('works with custom groupings', function() {
+
+            var percentageChangeGroup;
+
+            beforeEach(function() {
+                mockCustomKeyValueData();
+                percentageChangeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByPlaceAndTerritoryByDate );
+                percentageChangeGroup._debug(true);
+
+            });
+
+            afterEach(function() {
+                percentageChangeGroup = null;
+            });
+
+            it('maintains original custom value', function() {
+
+                var resultsAll;
+                var all = groupVisitsByPlaceAndTerritoryByDate.top(Infinity);
+                resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( all[ 0 ].key ).toBe( resultsAll[ 0 ].key );
+                expect( all[ 0 ].value ).toBe( resultsAll[ 0 ].value );
+                expect( all[ 2 ].key ).toBe( resultsAll[ 2 ].key );
+                expect( all[ 2 ].value ).toBe( resultsAll[ 2 ].value );
+                expect( resultsAll[ 1 ].value ).toEqual( {
+                    totalVisits: 17,
+                    places: {
+                        A: {
+                            visits: 17
+                        },
+                        B: {
+                            visits: 0
+                        },
+                        C: {
+                            visits: 0
+                        }
+                    },
+                    territories: {
+                        A: {
+                            visits: 0
+                        },
+                        B: {
+                            visits: 17
+                        }
+                    }
+                } );
+
+            });
+
+            it('adds percentage changed', function() {
+
+                var all = groupVisitsByPlaceAndTerritoryByDate.top(Infinity);
+                var resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( all[ 0 ].percentageChange ).not.toBeDefined();
+                expect( resultsAll[ 0 ].percentageChange ).toBeDefined();
+            });
+
+            it('allows getting the % change of the total visits', function() {
+
+                var resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 0 ].percentageChange ).not.toBe( 1 );
+                expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 1 ].percentageChange ).not.toBe( 200 );
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 2 ].percentageChange ).not.toBe( 13.33 );
+                expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 3 ].percentageChange ).not.toBe( 41.18 );
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+
+                resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( 200 );
+                expect( resultsAll[ 1 ].percentageChange ).toBeCloseTo( 13.33 );
+                expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( -41.18 );
+                expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
+
+            });
+
+            it('allows getting the % change of Place A', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.A.visits; } );
+
+                var resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( -100 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( -41.18 );
+                expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
+
+            });
+
+            it('allows getting the % change of Place B', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.B.visits; } );
+
+                var resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
+
+            });
+
+            it('allows getting the % change of each place', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.A.visits; } );
+
+                var resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( resultsAll[ 0 ].percentageChange ).not.toBeDefined();
+                expect( resultsAll[ 1 ].percentageChange ).not.toBeDefined();
+                expect( resultsAll[ 2 ].percentageChange ).not.toBeDefined();
+                expect( resultsAll[ 3 ].percentageChange ).not.toBeDefined();
+
+                expect( resultsAll[ 0 ].value.places.A.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.places.A.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].value.places.A.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 3 ].value.places.A.percentageChange ).toBeCloseTo( -41.18 );
+
+                expect( resultsAll[ 0 ].value.places.B.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.places.B.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 2 ].value.places.B.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 3 ].value.places.B.percentageChange ).toBe( 0 );
+
+            });
+
+            it('allows getting the % change of territory A', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.territories.A.visits; } );
+
+                var resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( 650 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
+
+            });
+
+            it('allows getting the % change of territory B', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.territories.B.visits; } );
+
+                var resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( -100 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 2 ].percentageChange ).toBe( -100 );
+                expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
+
+            });
+
+            it('allows getting the % change of each territory', function() {
+
+                var resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( resultsAll[ 0 ].percentageChange ).not.toBeDefined();
+                expect( resultsAll[ 1 ].percentageChange ).not.toBeDefined();
+                expect( resultsAll[ 2 ].percentageChange ).not.toBeDefined();
+                expect( resultsAll[ 3 ].percentageChange ).not.toBeDefined();
+
+                expect( resultsAll[ 0 ].value.territories.A.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.territories.A.percentageChange ).toBe( 650 );
+                expect( resultsAll[ 2 ].value.territories.A.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 3 ].value.territories.A.percentageChange ).toBe( Infinity );
+
+                expect( resultsAll[ 0 ].value.territories.B.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.territories.B.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].value.territories.B.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 3 ].value.territories.B.percentageChange ).toBe( -100 );
+
+            });
+
+            it('allows getting the % change of each place and territory and total', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+
+                var resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( 200 );
+                expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( 13.33 );
+                expect( resultsAll[ 3 ].percentageChange ).toBeCloseTo( -41.18 );
+
+                expect( resultsAll[ 0 ].value.places.A.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.places.A.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].value.places.A.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 3 ].value.places.A.percentageChange ).toBeCloseTo( -41.18 );
+
+                expect( resultsAll[ 0 ].value.places.B.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.places.B.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 2 ].value.places.B.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 3 ].value.places.B.percentageChange ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].value.territories.A.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.territories.A.percentageChange ).toBe( 650 );
+                expect( resultsAll[ 2 ].value.territories.A.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 3 ].value.territories.A.percentageChange ).toBe( Infinity );
+
+                expect( resultsAll[ 0 ].value.territories.B.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.territories.B.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].value.territories.B.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 3 ].value.territories.B.percentageChange ).toBe( -100 );
+
+            });
+
+        });
+
     });
 
 

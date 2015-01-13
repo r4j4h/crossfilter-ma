@@ -106,6 +106,15 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
         rebuildMockCrossfilterWithMockData( setOfNumbers );
 
+        var dimensionPlaces = crossfilterInstance.dimension(function (d) {
+            return d.place
+        });
+        var dimensionTerritories = crossfilterInstance.dimension(function (d) {
+            return d.territory
+        });
+        var knownPlaces = dimensionPlaces.group().all().map( function(d) { return d.key; } );
+        var knownTerritories = dimensionTerritories.group().all().map( function(d) { return d.key; } );
+
         groupVisitsByPlaceAndTerritoryByDate = dimensionDate.group().reduce(
             function ( p, v ) {
                 p.totalVisits += v.visits;
@@ -144,11 +153,30 @@ describe('accumulateGroupForNDayMovingAverage', function() {
                 return p;
             },
             function () {
-                return {
+                var obj = {
                     totalVisits: 0,
-                    places: {},
+                    places     : {},
                     territories: {}
                 };
+
+                // Make sure each place is represented, with at least 0
+                var t = knownPlaces.length,
+                    i = -1;
+                while ( ++i < t ) {
+                    obj.places[ knownPlaces[i] ] = {
+                        visits: 0
+                    };
+                }
+                // Make sure each territory is represented, with at least 0
+                var t = knownTerritories.length,
+                    i = -1;
+                while ( ++i < t ) {
+                    obj.territories[ knownTerritories[i] ] = {
+                        visits: 0
+                    };
+                }
+
+                return obj;
             }
         );
 
@@ -741,6 +769,249 @@ describe('accumulateGroupForNDayMovingAverage', function() {
         });
 
 
+        describe('works with custom groupings', function() {
+
+            var percentageChangeGroup;
+
+            beforeEach(function() {
+                mockCustomKeyValueData();
+                percentageChangeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByPlaceAndTerritoryByDate );
+                percentageChangeGroup._debug(true);
+
+            });
+
+            afterEach(function() {
+                percentageChangeGroup = null;
+            });
+
+            it('maintains original custom value', function() {
+
+                var resultsAll;
+                var all = groupVisitsByPlaceAndTerritoryByDate.all();
+                resultsAll = percentageChangeGroup.all();
+
+                expect( all[ 0 ].key ).toBe( resultsAll[ 0 ].key );
+                expect( all[ 0 ].value ).toBe( resultsAll[ 0 ].value );
+                expect( all[ 2 ].key ).toBe( resultsAll[ 2 ].key );
+                expect( all[ 2 ].value ).toBe( resultsAll[ 2 ].value );
+                expect( resultsAll[ 2 ].value ).toEqual( {
+                    totalVisits: 17,
+                    places: {
+                        A: {
+                            visits: 17
+                        },
+                        B: {
+                            visits: 0
+                        },
+                        C: {
+                            visits: 0
+                        }
+                    },
+                    territories: {
+                        A: {
+                            visits: 0
+                        },
+                        B: {
+                            visits: 17
+                        }
+                    }
+                } );
+
+            });
+
+            it('adds rolling average', function() {
+
+                var all = groupVisitsByPlaceAndTerritoryByDate.all();
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( all[ 0 ].rollingAverage ).not.toBeDefined();
+                expect( resultsAll[ 0 ].rollingAverage ).toBeDefined();
+            });
+
+            it('allows getting the rolling average of the total visits', function() {
+
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBeNaN();
+                expect( resultsAll[ 1 ].rollingAverage ).not.toBe( 10 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBeNaN();
+                expect( resultsAll[ 2 ].rollingAverage ).not.toBe( 16 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBeNaN();
+                expect( resultsAll[ 3 ].rollingAverage ).not.toBe( 13.5 );
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+
+                resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].key ).toBe( '2012-01-11' );
+                expect( resultsAll[ 1 ].key ).toBe( '2012-01-12' );
+                expect( resultsAll[ 2 ].key ).toBe( '2012-01-13' );
+                expect( resultsAll[ 3 ].key ).toBe( '2012-01-15' );
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 10 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBe( 16 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBe( 13.5 );
+
+                expect( resultsAll[ 0 ]._debug.cumulate ).toBe( 5 );
+                expect( resultsAll[ 1 ]._debug.cumulate ).toBe( 20 );
+                expect( resultsAll[ 2 ]._debug.cumulate ).toBe( 37 );
+                expect( resultsAll[ 3 ]._debug.cumulate ).toBe( 47 );
+
+            });
+
+            it('allows getting the rolling average of Place A', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.A.visits; } );
+
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
+
+                expect( resultsAll[ 0 ].value ).toBe( 2 );
+                expect( resultsAll[ 1 ].value ).toBe( 0 );
+                expect( resultsAll[ 2 ].value ).toBe( 17 );
+                expect( resultsAll[ 3 ].value ).toBe( 10 );
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 1 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBe( 13.5 );
+
+            });
+
+            it('allows getting the rolling average of Place B', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.B.visits; } );
+
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
+
+                expect( resultsAll[ 0 ].value ).toBe( 0 );
+                expect( resultsAll[ 1 ].value ).toBe( 15 );
+                expect( resultsAll[ 2 ].value ).toBe( 0 );
+                expect( resultsAll[ 3 ].value ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBe( 0 );
+
+            });
+
+            it('allows getting the rolling average of each place', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.A.visits; } );
+
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].rollingAverage ).not.toBeDefined();
+                expect( resultsAll[ 1 ].rollingAverage ).not.toBeDefined();
+                expect( resultsAll[ 2 ].rollingAverage ).not.toBeDefined();
+                expect( resultsAll[ 3 ].rollingAverage ).not.toBeDefined();
+
+                expect( resultsAll[ 0 ].value.places.A.rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.places.A.rollingAverage ).toBe( 1 );
+                expect( resultsAll[ 2 ].value.places.A.rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 3 ].value.places.A.rollingAverage ).toBe( 13.5 );
+
+                expect( resultsAll[ 0 ].value.places.B.rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.places.B.rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 2 ].value.places.B.rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 3 ].value.places.B.rollingAverage ).toBe( 0 );
+
+            });
+
+            it('allows getting the rolling average of territory A', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.territories.A.visits; } );
+
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBe( 5 );
+
+            });
+
+            it('allows getting the rolling average of territory B', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.territories.B.visits; } );
+
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 1.5 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBe( 8.5 );
+
+            });
+
+            it('allows getting the rolling average of each territory', function() {
+
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].rollingAverage ).not.toBeDefined();
+                expect( resultsAll[ 1 ].rollingAverage ).not.toBeDefined();
+                expect( resultsAll[ 2 ].rollingAverage ).not.toBeDefined();
+                expect( resultsAll[ 3 ].rollingAverage ).not.toBeDefined();
+
+                expect( resultsAll[ 0 ].value.territories.A.rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.territories.A.rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 2 ].value.territories.A.rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 3 ].value.territories.A.rollingAverage ).toBe( 5 );
+
+                expect( resultsAll[ 0 ].value.territories.B.rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.territories.B.rollingAverage ).toBe( 1.5 );
+                expect( resultsAll[ 2 ].value.territories.B.rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 3 ].value.territories.B.rollingAverage ).toBe( 8.5 );
+
+            });
+
+            it('allows getting the rolling average of each place and territory and total', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 200 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBeCloseTo( 13.33 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBeCloseTo( -41.18 );
+
+                expect( resultsAll[ 0 ].value.places.A.rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.places.A.rollingAverage ).toBe( 1 );
+                expect( resultsAll[ 2 ].value.places.A.rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 3 ].value.places.A.rollingAverage ).toBe( 13.5 );
+
+                expect( resultsAll[ 0 ].value.places.B.rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.places.B.rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 2 ].value.places.B.rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 3 ].value.places.B.rollingAverage ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].value.territories.A.rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.territories.A.rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 2 ].value.territories.A.rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 3 ].value.territories.A.rollingAverage ).toBe( 5 );
+
+                expect( resultsAll[ 0 ].value.territories.B.rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.territories.B.rollingAverage ).toBe( 1.5 );
+                expect( resultsAll[ 2 ].value.territories.B.rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 3 ].value.territories.B.rollingAverage ).toBe( 8.5 );
+
+            });
+
+        });
+
 
     });
 
@@ -989,6 +1260,251 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             rollingAverageFakeGroup.top(Infinity);
 
             expect( mySpy ).toHaveBeenCalled();
+
+        });
+
+
+        describe('works with custom groupings', function() {
+
+            var percentageChangeGroup;
+
+            beforeEach(function() {
+                mockCustomKeyValueData();
+                percentageChangeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByPlaceAndTerritoryByDate );
+                percentageChangeGroup._debug(true);
+
+            });
+
+            afterEach(function() {
+                percentageChangeGroup = null;
+            });
+
+            it('maintains original custom value', function() {
+
+                var resultsAll;
+                var all = groupVisitsByPlaceAndTerritoryByDate.top(Infinity);
+                resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( all[ 0 ].key ).toBe( resultsAll[ 0 ].key );
+                expect( all[ 0 ].value ).toBe( resultsAll[ 0 ].value );
+                expect( all[ 2 ].key ).toBe( resultsAll[ 2 ].key );
+                expect( all[ 2 ].value ).toBe( resultsAll[ 2 ].value );
+                expect( resultsAll[ 1 ].value ).toEqual( {
+                    totalVisits: 17,
+                    places: {
+                        A: {
+                            visits: 17
+                        },
+                        B: {
+                            visits: 0
+                        },
+                        C: {
+                            visits: 0
+                        }
+                    },
+                    territories: {
+                        A: {
+                            visits: 0
+                        },
+                        B: {
+                            visits: 17
+                        }
+                    }
+                } );
+
+            });
+
+            it('adds rollingAverage', function() {
+
+                var all = groupVisitsByPlaceAndTerritoryByDate.top(Infinity);
+                var resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( all[ 0 ].rollingAverage ).not.toBeDefined();
+                expect( resultsAll[ 0 ].rollingAverage ).toBeDefined();
+            });
+
+            it('allows getting the rolling average of the total visits', function() {
+
+                var resultsAll = percentageChangeGroup.top(Infinity);
+                expect( resultsAll[ 0 ].rollingAverage ).toBeNaN();
+                expect( resultsAll[ 0 ].rollingAverage ).not.toBe( 1 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBeNaN();
+                expect( resultsAll[ 1 ].rollingAverage ).not.toBe( 200 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBeNaN();
+                expect( resultsAll[ 2 ].rollingAverage ).not.toBe( 13.33 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 3 ].rollingAverage ).not.toBe( 41.18 );
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+
+                resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( resultsAll[ 0 ].key ).toBe( '2012-01-12' );
+                expect( resultsAll[ 1 ].key ).toBe( '2012-01-13' );
+                expect( resultsAll[ 2 ].key ).toBe( '2012-01-15' );
+                expect( resultsAll[ 3 ].key ).toBe( '2012-01-11' );
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 10 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 16 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBe( 13.5 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBe( 0 );
+
+                expect( resultsAll[ 0 ]._debug.cumulate ).toBe( 15 );
+                expect( resultsAll[ 1 ]._debug.cumulate ).toBe( 32 );
+                expect( resultsAll[ 2 ]._debug.cumulate ).toBe( 42 );
+                expect( resultsAll[ 3 ]._debug.cumulate ).toBe( 47 );
+
+            });
+
+            it('allows getting the rolling average of Place A', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.A.visits; } );
+
+                var resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-15" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-11" );
+
+                expect( resultsAll[ 0 ].value ).toBe( 0 );
+                expect( resultsAll[ 1 ].value ).toBe( 17 );
+                expect( resultsAll[ 2 ].value ).toBe( 10 );
+                expect( resultsAll[ 3 ].value ).toBe( 2 );
+
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 1 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBe( 13.5 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBe( 0 );
+
+            });
+
+            it('allows getting the rolling average of Place B', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.B.visits; } );
+
+                var resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-15" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-11" );
+
+                expect( resultsAll[ 0 ].value ).toBe( 15 );
+                expect( resultsAll[ 1 ].value ).toBe( 0 );
+                expect( resultsAll[ 2 ].value ).toBe( 0 );
+                expect( resultsAll[ 3 ].value ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBe( 0 );
+
+            });
+
+            it('allows getting the rolling average of each place', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.A.visits; } );
+
+                var resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( resultsAll[ 0 ].rollingAverage ).not.toBeDefined();
+                expect( resultsAll[ 1 ].rollingAverage ).not.toBeDefined();
+                expect( resultsAll[ 2 ].rollingAverage ).not.toBeDefined();
+                expect( resultsAll[ 3 ].rollingAverage ).not.toBeDefined();
+
+                expect( resultsAll[ 0 ].value.places.A.rollingAverage ).toBe( 1 );
+                expect( resultsAll[ 1 ].value.places.A.rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 2 ].value.places.A.rollingAverage ).toBe( 13.5 );
+                expect( resultsAll[ 3 ].value.places.A.rollingAverage ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].value.places.B.rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 1 ].value.places.B.rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 2 ].value.places.B.rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 3 ].value.places.B.rollingAverage ).toBe( 0 );
+
+            });
+
+            it('allows getting the rolling average of territory A', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.territories.A.visits; } );
+
+                var resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBe( 5 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBe( 0 );
+
+            });
+
+            it('allows getting the rolling average of territory B', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.territories.B.visits; } );
+
+                var resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 1.5 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBe( 0 );
+
+            });
+
+            it('allows getting the rolling average of each territory', function() {
+
+                var resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( resultsAll[ 0 ].rollingAverage ).not.toBeDefined();
+                expect( resultsAll[ 1 ].rollingAverage ).not.toBeDefined();
+                expect( resultsAll[ 2 ].rollingAverage ).not.toBeDefined();
+                expect( resultsAll[ 3 ].rollingAverage ).not.toBeDefined();
+
+                expect( resultsAll[ 0 ].value.territories.A.rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 1 ].value.territories.A.rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 2 ].value.territories.A.rollingAverage ).toBe( 5 );
+                expect( resultsAll[ 3 ].value.territories.A.rollingAverage ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].value.territories.B.rollingAverage ).toBe( 1.5 );
+                expect( resultsAll[ 1 ].value.territories.B.rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 2 ].value.territories.B.rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 3 ].value.territories.B.rollingAverage ).toBe( 0 );
+
+            });
+
+            it('allows getting the rolling average of each place and territory and total', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+
+                var resultsAll = percentageChangeGroup.top(Infinity);
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 200 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBeCloseTo( 13.33 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBeCloseTo( -41.18 );
+
+                expect( resultsAll[ 0 ].value.places.A.rollingAverage ).toBe( 1 );
+                expect( resultsAll[ 1 ].value.places.A.rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 2 ].value.places.A.rollingAverage ).toBe( 13.5 );
+                expect( resultsAll[ 3 ].value.places.A.rollingAverage ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].value.places.B.rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 1 ].value.places.B.rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 2 ].value.places.B.rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 3 ].value.places.B.rollingAverage ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].value.territories.A.rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 1 ].value.territories.A.rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 2 ].value.territories.A.rollingAverage ).toBe( 5 );
+                expect( resultsAll[ 3 ].value.territories.A.rollingAverage ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].value.territories.B.rollingAverage ).toBe( 1.5 );
+                expect( resultsAll[ 1 ].value.territories.B.rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 2 ].value.territories.B.rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 3 ].value.territories.B.rollingAverage ).toBe( 0 );
+
+            });
 
         });
 
