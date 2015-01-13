@@ -186,7 +186,10 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
 
             var accumulatedAll = all.map( function( d, i, arr ) {
 
-                var thisDayIndex = orderedDates.indexOf( _this.keyAccessor()( d ) );
+                var thisDayKey = _this.keyAccessor()( d );
+                var thisDayValue = _this.valueAccessor()( d );
+                var thisDayIndex = orderedDates.indexOf( thisDayKey );
+
 
                 var days = ndays;
 
@@ -219,11 +222,11 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 }
 
                 numsToAverage++;
-                thisCumulate += d.value;
+                thisCumulate += thisDayValue;
 
                 if ( debugMode ) {
-                    cumulate += d.value;
-                    datumsUsed.push( { 'key': d.key, 'value': d.value } );
+                    cumulate += thisDayValue;
+                    datumsUsed.push( { 'key': thisDayKey, 'value': thisDayValue } );
                 }
 
                 thisAverage = thisCumulate / numsToAverage;
@@ -233,8 +236,8 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 }
 
                 var returnObj = {
-                    key           : d.key,
-                    value         : d.value,
+                    key           : thisDayKey,
+                    value         : thisDayValue,
                     rollingAverage: thisAverage
                 };
 
@@ -298,7 +301,9 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
 
             var accumulatedAll = all.map( function( d, i, arr ) {
 
-                var thisDayIndex = orderedDates.indexOf( _this.keyAccessor()( d ) );
+                var thisDayKey = _this.keyAccessor()( d );
+                var thisDayValue = _this.valueAccessor()( d );
+                var thisDayIndex = orderedDates.indexOf( thisDayKey );
 
                 var days = ndays;
 
@@ -331,11 +336,11 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 }
 
                 numsToAverage++;
-                thisCumulate += d.value;
+                thisCumulate += thisDayValue;
 
                 if ( debugMode ) {
-                    cumulate += d.value;
-                    datumsUsed.push( { 'key': d.key, 'value': d.value } );
+                    cumulate += thisDayValue;
+                    datumsUsed.push( { 'key': thisDayKey, 'value': thisDayValue } );
                 }
 
                 thisAverage = thisCumulate / numsToAverage;
@@ -345,8 +350,8 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 }
 
                 var returnObj = {
-                    key: d.key,
-                    value: d.value,
+                    key: thisDayKey,
+                    value: thisDayValue,
                     rollingAverage: thisAverage
                 };
 
@@ -492,8 +497,6 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
                 var thisDayIndex = orderedDates.indexOf( _this.keyAccessor()( d ) );
                 var prevDayId = orderedDates[ thisDayIndex - 1 ];
                 var prevDayValue;
-
-                var prevDay = arr[i - 1];
 
                 if ( prevDayId ) {
                     var prevDayBlock = fullDates[ prevDayId ];
