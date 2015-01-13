@@ -265,7 +265,7 @@ How to Test
 
 - Run `grunt test`.
 - Run `grunt server` and visit `http://0.0.0.0:8888/spec/`
-- Run `grunt coverage` and then `grunt server` and visit `http://0.0.0.0:8888/coverage/
+- Run `grunt coverage` and then `grunt server` and visit `http://0.0.0.0:8888/coverage/`
 
 
 Inspired By
