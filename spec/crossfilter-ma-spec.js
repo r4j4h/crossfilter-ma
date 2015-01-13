@@ -13,6 +13,22 @@ describe('crossfilter-ma', function() {
         crossfilterMa = null;
     });
 
+    it('is available through crossfilter-ma', function() {
+
+        global = (function() { return this; })();
+        crossfilterMa = global['crossfilter-ma'];
+        expect( crossfilterMa ).toBeDefined();
+
+    });
+
+    it('is available through crossfilter$ma', function() {
+
+        global = (function() { return this; })();
+        crossfilterMa = global.crossfilter$ma;
+        expect( crossfilterMa ).toBeDefined();
+
+    });
+
     it('provides a rolling average function', function() {
 
         expect( typeof crossfilterMa.accumulateGroupForNDayMovingAverage ).toBe( 'function' );

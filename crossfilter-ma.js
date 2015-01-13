@@ -1,5 +1,5 @@
 /*!
- *  crossfilter-ma 1.2.0
+ *  crossfilter-ma 1.2.1
  *  https://github.com/r4j4h/crossfilter-ma
  *  Copyright 2015 Jasmine Hegman
  *
@@ -22,13 +22,13 @@
 /**
  * crossfilter.ma is a crossfilter group modifier (in reductio-like fashion) to calculate moving averages.
  *
- * Version: 1.2.0
+ * Version: 1.2.1
  * Author: Jasmine Hegman
  */
 
 var crossfilterMA = {};
 
-crossfilterMA.version = '1.2.0';
+crossfilterMA.version = '1.2.1';
 
 crossfilterMA.constants = {
     DEFAULT_MOVING_AVERAGE_NODES: 2
@@ -529,6 +529,7 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
             module.exports = _crossfilterMA(_crossfilter);
         } else {
             this['crossfilter-ma'] = _crossfilterMA(crossfilter);
+            this.crossfilter$ma = this['crossfilter-ma'];
         }
     }
 )();

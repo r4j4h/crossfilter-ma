@@ -20,7 +20,11 @@ Calculating a Rolling/Moving Average
 ----
 
 ```javascript
-var crossfilterMa = window['crossfilter-ma'];
+// Get reference
+var crossfilterMa = crossfilter$ma;             // Both variables work and are identical.
+var crossfilterMa = window['crossfilter-ma'];   // Providing both b/c GitHub naming and convenience impedence mismatch.
+
+// Replace with your data
 var data = [
     { date: "2012-01-11", visits: 2  }, // 2 point  | 3 point
     { date: "2012-01-12", visits: 3  }, // 2.5      | null
@@ -30,15 +34,18 @@ var data = [
     { date: "2012-01-16", visits: 12 }, // 11       | 8.333
     { date: "2012-01-17", visits: 7  }  // 9.5      | 9.666
 ];
+// Build crossfilter on it
 var data = crossfilter(data);
+// Build crossfilter dimension
 var dim = data.dimension(function (d) {
     return d.date
 });
+// Build crossfilter group
 var group = dim.group().reduceSum( function(d) { return d.visits; } );
 
 
 
-// Get a 3 day moving average
+// Get a 3 day moving average on group
 var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( group, 3 );
 
 // Get results with current crossfilter filtering applied
@@ -160,6 +167,11 @@ Calculating Percent Change
 ---
 
 ```javascript
+// Get reference
+var crossfilterMa = crossfilter$ma;             // Both variables work and are identical.
+var crossfilterMa = window['crossfilter-ma'];   // Providing both b/c GitHub naming and convenience impedence mismatch.
+
+// Replace with your data
 var data = [
     { date: "2012-01-11", visits: 2  },
     { date: "2012-01-12", visits: 3  },
@@ -169,11 +181,16 @@ var data = [
     { date: "2012-01-16", visits: 12 },
     { date: "2012-01-17", visits: 7  }
 ];
+// Build crossfilter on it
 var data = crossfilter(data);
+// Build crossfilter dimension
 var dim = data.dimension(function (d) {
     return d.date
 });
+// Build crossfilter group
 var group = dim.group().reduceSum( function(d) { return d.visits; } );
+
+
 
 // Get values with Percent Change
 var pc = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );

@@ -20,6 +20,7 @@
             module.exports = _crossfilterMA(_crossfilter);
         } else {
             this['crossfilter-ma'] = _crossfilterMA(crossfilter);
+            this.crossfilter$ma = this['crossfilter-ma'];
         }
     }
 )();
