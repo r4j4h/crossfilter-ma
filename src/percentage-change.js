@@ -126,8 +126,6 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
                 var prevDayId = orderedDates[ thisDayIndex - 1 ];
                 var prevDayValue;
 
-                var prevDay = arr[i - 1];
-
                 if ( prevDayId ) {
                     var prevDayBlock = fullDates[ prevDayId ];
                     prevDayValue = prevDayBlock.myValue;
