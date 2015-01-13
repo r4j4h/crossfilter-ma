@@ -5,7 +5,7 @@ crossfilter.ma is a [_crossfilter group_ modifier](https://github.com/dc-js/dc.j
 
 
 How to Install
-----
+=====
 
 - Ensure requirements are provided on your page
   - crossfilter
@@ -14,7 +14,7 @@ How to Install
 
 
 How to Use
-----
+=====
 
 Calculating a Rolling/Moving Average
 ----
@@ -277,16 +277,152 @@ results = [
 
 ```
 
-How to Test
+
+Complex Data / Grouping
 ----
+
+Custom Key/Value accessors
+
+```javascript
+// Prepare more complex data
+setOfNumbers = [
+    { date: "2012-01-11", visits: 2,  place: "A", territory: "A" },
+    { date: "2012-01-12", visits: 3,  place: "B", territory: "A" },
+    { date: "2012-01-13", visits: 10, place: "A", territory: "B" },
+    { date: "2012-01-11", visits: 3,  place: "C", territory: "B" },
+    { date: "2012-01-15", visits: 10, place: "A", territory: "A" },
+    { date: "2012-01-12", visits: 12, place: "B", territory: "A" },
+    { date: "2012-01-13", visits: 7,  place: "A", territory: "B" }
+];
+
+// Crossfilter it
+crossfilterInstance = crossfilter( mockData );
+
+dimensionDate = crossfilterInstance.dimension(function (d) {
+    return d.date
+});
+
+// Since we are missing entries for some data points on some days (place C is only present on the 11th)
+// We want to fill in everyone with 0, so let's gather the dimensions we want to do this on.
+var dimensionPlaces = crossfilterInstance.dimension(function (d) {
+    return d.place
+});
+var dimensionTerritories = crossfilterInstance.dimension(function (d) {
+    return d.territory
+});
+var knownPlaces = dimensionPlaces.group().all().map( function(d) { return d.key; } );
+var knownTerritories = dimensionTerritories.group().all().map( function(d) { return d.key; } );
+groupVisitsByPlaceAndTerritoryByDate = dimensionDate.group().reduce(
+    function ( p, v ) {
+        p.totalVisits += v.visits;
+
+        if ( p.places[ v.place ] ) {
+            p.places[ v.place ].visits += v.visits;
+        } else {
+            p.places[ v.place ] = {
+                visits: v.visits
+            };
+        }
+
+        if ( p.territories[ v.territory ] ) {
+            p.territories[ v.territory ].visits += v.visits;
+        } else {
+            p.territories[ v.territory ] = {
+                visits: v.visits
+            };
+        }
+        return p;
+    },
+    function ( p, v ) {
+        p.totalVisits -= v.visits;
+
+        if ( p.places[ v.place ] ) {
+            p.places[ v.place ].visits -= v.visits;
+        } else {
+            delete p.places[ v.place ];
+        }
+
+        if ( p.territories[ v.territory ] ) {
+            p.territories[ v.territory ].visits -= v.visits;
+        } else {
+            delete p.territories[ v.territory ];
+        }
+        return p;
+    },
+    function () {
+        var obj = {
+            totalVisits: 0,
+            places     : {},
+            territories: {}
+        };
+
+        // Make sure each place is represented, with at least 0
+        var t = knownPlaces.length,
+            i = -1;
+        while ( ++i < t ) {
+            obj.places[ knownPlaces[i] ] = {
+                visits: 0
+            };
+        }
+        // Make sure each territory is represented, with at least 0
+        var t = knownTerritories.length,
+            i = -1;
+        while ( ++i < t ) {
+            obj.territories[ knownTerritories[i] ] = {
+                visits: 0
+            };
+        }
+
+        return obj;
+    }
+);
+
+// Now let's use that group with crossfilter$ma
+percentageChangeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByPlaceAndTerritoryByDate );
+percentageChangeGroup._debug(true);
+
+var resultsAll = percentageChangeGroup.all();
+
+// Our reduce function's `value` is no longer a primitive, but an object, so this is going to mess up...
+expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+expect( resultsAll[ 0 ].percentageChange ).not.toBe( 1 );
+expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+expect( resultsAll[ 1 ].percentageChange ).not.toBe( 200 );
+expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
+expect( resultsAll[ 2 ].percentageChange ).not.toBe( 13.33 );
+expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
+expect( resultsAll[ 3 ].percentageChange ).not.toBe( 41.18 );
+
+// Let's inform crossfilter$ma to look deeper into that object for the totalVisits property
+percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+
+resultsAll = percentageChangeGroup.all();
+
+// Now we've got our expected data!
+expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+expect( resultsAll[ 1 ].percentageChange ).toBe( 200 );
+expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( 13.33 );
+expect( resultsAll[ 3 ].percentageChange ).toBeCloseTo( -41.18 );
+
+```
+
+
+
+
+How to Test
+=====
 
 - Run `grunt test`.
 - Run `grunt server` and visit `http://0.0.0.0:8888/spec/`
 - Run `grunt coverage` and then `grunt server` and visit `http://0.0.0.0:8888/coverage/`
 
 
+
+
+
+
 Inspired By
-----
+=====
 
 - [dc.js](https://github.com/dc-js/dc.js)
   - [Specifically this portion of the FAQ](https://github.com/dc-js/dc.js/wiki/FAQ#filter-the-data-before-its-charted)

@@ -9,27 +9,16 @@ describe('accumulateGroupForNDayMovingAverage', function() {
         dimensionDateForFiltering,
         dimensionVisitsForFiltering,
         groupVisitsByDate,
-        groupForTesting;
+        groupVisitsByPlaceAndTerritoryByDate;
 
-    beforeEach(function() {
-        global = (function() { return this; })();
-        crossfilterMa = global['crossfilter-ma'];
+    /**
+     * Rebuild crossfilter, dimension, and group with mock data.
+     * @param {[{date: String, visits: Number}]} mockData
+     */
+    function rebuildMockCrossfilterWithMockData( mockData ) {
 
-        // Ordered, test
-        setOfNumbers = [
-            { date: "2012-01-11", visits: 2  }, // 2 point  | 3 point
-            { date: "2012-01-12", visits: 3  }, // 2.5      | null
-            { date: "2012-01-13", visits: 10 }, // 6.5      | 5
-            { date: "2012-01-14", visits: 3  }, // 6.5      | 5.333
-            { date: "2012-01-15", visits: 10 }, // 6.5      | 7.666
-            { date: "2012-01-16", visits: 12 }, // 11       | 8.333
-            { date: "2012-01-17", visits: 7  }  // 9.5      | 9.666
-        ];
+        crossfilterInstance = crossfilter( mockData );
 
-        // TODO Test unordered
-        // TODO Test multiple dates that must be pregrouped
-
-        crossfilterInstance = crossfilter( setOfNumbers );
         dimensionDate = crossfilterInstance.dimension(function (d) {
             return d.date
         });
@@ -41,6 +30,135 @@ describe('accumulateGroupForNDayMovingAverage', function() {
         });
 
         groupVisitsByDate = dimensionDate.group().reduceSum( function(d) { return d.visits; } );
+
+    }
+
+    /**
+     * Mock ordered, unique test data
+     */
+    function mockOrderedUniqueData() {
+
+        setOfNumbers = [
+            { date: "2012-01-11", visits: 2  }, // 2 point  | 3 point
+            { date: "2012-01-12", visits: 3  }, // 2.5      | null
+            { date: "2012-01-13", visits: 10 }, // 6.5      | 5
+            { date: "2012-01-14", visits: 3  }, // 6.5      | 5.333
+            { date: "2012-01-15", visits: 10 }, // 6.5      | 7.666
+            { date: "2012-01-16", visits: 12 }, // 11       | 8.333
+            { date: "2012-01-17", visits: 7  }  // 9.5      | 9.666
+        ];
+
+        rebuildMockCrossfilterWithMockData( setOfNumbers );
+    }
+
+    /**
+     * Mock unordered, unique test data
+     */
+    function mockUnorderedUniqueData() {
+
+        setOfNumbers = [
+            { date: "2012-01-11", visits: 2  },
+            { date: "2012-01-13", visits: 10 },
+            { date: "2012-01-17", visits: 7  },
+            { date: "2012-01-16", visits: 12 },
+            { date: "2012-01-14", visits: 3  },
+            { date: "2012-01-15", visits: 10 },
+            { date: "2012-01-12", visits: 3  }
+        ];
+
+        rebuildMockCrossfilterWithMockData( setOfNumbers );
+
+    }
+
+    /**
+     * Mock unordered, redundant test data
+     */
+    function mockUnorderedRedundantData() {
+
+        setOfNumbers = [
+            { date: "2012-01-11", visits: 2  },
+            { date: "2012-01-12", visits: 3  },
+            { date: "2012-01-13", visits: 10 },
+            { date: "2012-01-11", visits: 3  },
+            { date: "2012-01-15", visits: 10 },
+            { date: "2012-01-12", visits: 12 },
+            { date: "2012-01-13", visits: 7  }
+        ];
+
+        rebuildMockCrossfilterWithMockData( setOfNumbers );
+
+    }
+
+    /**
+     * Mock unordered, redundant data with custom grouping functions
+     */
+    function mockCustomKeyValueData() {
+
+        setOfNumbers = [
+            { date: "2012-01-11", visits: 2,  place: "A", territory: "A" },
+            { date: "2012-01-12", visits: 3,  place: "B", territory: "A" },
+            { date: "2012-01-13", visits: 10, place: "A", territory: "B" },
+            { date: "2012-01-11", visits: 3,  place: "C", territory: "B" },
+            { date: "2012-01-15", visits: 10, place: "A", territory: "A" },
+            { date: "2012-01-12", visits: 12, place: "B", territory: "A" },
+            { date: "2012-01-13", visits: 7,  place: "A", territory: "B" }
+        ];
+
+        rebuildMockCrossfilterWithMockData( setOfNumbers );
+
+        groupVisitsByPlaceAndTerritoryByDate = dimensionDate.group().reduce(
+            function ( p, v ) {
+                p.totalVisits += v.visits;
+
+                if ( p.places[ v.place ] ) {
+                    p.places[ v.place ].visits += v.visits;
+                } else {
+                    p.places[ v.place ] = {
+                        visits: v.visits
+                    };
+                }
+
+                if ( p.territories[ v.territory ] ) {
+                    p.territories[ v.territory ].visits += v.visits;
+                } else {
+                    p.territories[ v.territory ] = {
+                        visits: v.visits
+                    };
+                }
+                return p;
+            },
+            function ( p, v ) {
+                p.totalVisits -= v.visits;
+
+                if ( p.places[ v.place ] ) {
+                    p.places[ v.place ].visits -= v.visits;
+                } else {
+                    delete p.places[ v.place ];
+                }
+
+                if ( p.territories[ v.territory ] ) {
+                    p.territories[ v.territory ].visits -= v.visits;
+                } else {
+                    delete p.territories[ v.territory ];
+                }
+                return p;
+            },
+            function () {
+                return {
+                    totalVisits: 0,
+                    places: {},
+                    territories: {}
+                };
+            }
+        );
+
+    }
+
+    beforeEach(function() {
+        global = (function() { return this; })();
+        crossfilterMa = global['crossfilter-ma'];
+
+        mockOrderedUniqueData();
     });
 
     afterEach(function() {
@@ -50,6 +168,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
         dimensionDateForFiltering = null;
         dimensionVisitsForFiltering = null;
         groupVisitsByDate = null;
+        groupVisitsByPlaceAndTerritoryByDate = null;
 
         global = null;
         crossfilterMa = null;
@@ -189,6 +308,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
         });
 
         it('defaults to constants point at creation time if none is provided', function() {
+
             // Cache actual
             var currentConstant = crossfilterMa.constants.DEFAULT_MOVING_AVERAGE_NODES;
 
@@ -204,6 +324,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             // Restore actual
             crossfilterMa.constants.DEFAULT_MOVING_AVERAGE_NODES = currentConstant;
+
         });
 
     });
@@ -216,7 +337,6 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             it('returns the current state of the rolldown flag', function() {
 
                 var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
-
                 expect( percentageChangeFakeGroup.rolldown() ).toBeFalsy();
 
             });
@@ -228,9 +348,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             it('takes boolean coerce-able parameters as the new state of the rolldown flag', function() {
 
                 var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
-
                 percentageChangeFakeGroup.rolldown( true );
-
                 expect( percentageChangeFakeGroup.rolldown() ).toBeTruthy();
 
             });
@@ -240,7 +358,6 @@ describe('accumulateGroupForNDayMovingAverage', function() {
         it('defaults to off', function() {
 
             var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
-
             expect( percentageChangeFakeGroup.rolldown() ).toBeFalsy();
 
         });
@@ -255,7 +372,6 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             it('returns the current state of the debug flag', function() {
 
                 var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
-
                 expect( percentageChangeFakeGroup._debug() ).toBeFalsy();
 
             });
@@ -267,9 +383,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             it('takes boolean coerce-able parameters as the new state of the debug flag', function() {
 
                 var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
-
                 percentageChangeFakeGroup._debug( true );
-
                 expect( percentageChangeFakeGroup._debug() ).toBeTruthy();
 
             });
@@ -279,8 +393,86 @@ describe('accumulateGroupForNDayMovingAverage', function() {
         it('defaults to off', function() {
 
             var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
-
             expect( percentageChangeFakeGroup._debug() ).toBeFalsy();
+
+        });
+
+    });
+
+
+    describe('key accessors', function() {
+
+        it('_defaultKeyAccessor() returns default key accessor', function() {
+
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+            expect( percentageChangeFakeGroup._defaultKeyAccessor() ).toEqual( jasmine.any( Function ) );
+
+        });
+
+        describe('keyAccessor()', function() {
+
+            it('returns current keyAccessor', function() {
+
+                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+                expect( percentageChangeFakeGroup.keyAccessor() ).toEqual( jasmine.any( Function ) );
+
+            });
+
+            it('allows configuring keyAccessor', function() {
+
+                var myAccessor = jasmine.createSpy('myAccessor'),
+                    origAccessor;
+                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+                origAccessor = percentageChangeFakeGroup.keyAccessor();
+
+                percentageChangeFakeGroup.keyAccessor( myAccessor );
+
+                expect( myAccessor ).not.toHaveBeenCalled();
+
+                expect( percentageChangeFakeGroup.keyAccessor() ).toBe(myAccessor);
+                expect( percentageChangeFakeGroup.keyAccessor() ).not.toBe(origAccessor);
+
+                percentageChangeFakeGroup.all();
+
+                expect( myAccessor ).toHaveBeenCalled();
+
+            });
+
+        });
+
+    });
+
+    describe('value accessors', function() {
+
+        it('_defaultValueAccessor() returns default value accessor', function() {
+
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+            expect( percentageChangeFakeGroup._defaultValueAccessor() ).toEqual( jasmine.any(Function) );
+
+        });
+
+        describe('valueAccessor()', function() {
+
+            it('returns current valueAccessor', function() {
+
+                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+                expect( percentageChangeFakeGroup.valueAccessor() ).toEqual(jasmine.any(Function));
+
+            });
+
+            it('allows configuring valueAccessor', function() {
+
+                var myAccessor = function() {},
+                    origAccessor;
+                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+                origAccessor = percentageChangeFakeGroup.valueAccessor();
+
+                percentageChangeFakeGroup.valueAccessor( myAccessor );
+
+                expect( percentageChangeFakeGroup.valueAccessor() ).toBe(myAccessor);
+                expect( percentageChangeFakeGroup.valueAccessor() ).not.toBe(origAccessor);
+
+            });
 
         });
 
@@ -520,6 +712,36 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             expect( results[6].rollingAverage ).toBeCloseTo( 9.666666666666666 );
         });
 
+        it('uses custom key accessor', function() {
+
+            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 3 );
+
+            var origKey = rollingAverageFakeGroup.keyAccessor();
+            var mySpy = jasmine.createSpy(origKey ).and.callThrough();
+            rollingAverageFakeGroup.keyAccessor( mySpy );
+
+            rollingAverageFakeGroup.all();
+
+            expect( mySpy ).toHaveBeenCalled();
+
+        });
+
+        it('uses custom value accessor', function() {
+
+            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 3 );
+
+            var origKey = rollingAverageFakeGroup.valueAccessor();
+            var mySpy = jasmine.createSpy(origKey ).and.callThrough();
+            rollingAverageFakeGroup.valueAccessor( mySpy );
+
+            rollingAverageFakeGroup.all();
+
+            expect( mySpy ).toHaveBeenCalled();
+
+        });
+
+
+
     });
 
 
@@ -739,6 +961,34 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             expect( results[6].key ).toBe( '2012-01-11' );
             expect( results[6].rollingAverage ).toBe( 2 );
             expect( results[6]._debug.datumsUsed.length ).toBe( 1 );
+
+        });
+
+        it('uses custom key accessor', function() {
+
+            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 3 );
+
+            var origKey = rollingAverageFakeGroup.keyAccessor();
+            var mySpy = jasmine.createSpy(origKey ).and.callThrough();
+            rollingAverageFakeGroup.keyAccessor( mySpy );
+
+            rollingAverageFakeGroup.top(Infinity);
+
+            expect( mySpy ).toHaveBeenCalled();
+
+        });
+
+        it('uses custom value accessor', function() {
+
+            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 3 );
+
+            var origKey = rollingAverageFakeGroup.valueAccessor();
+            var mySpy = jasmine.createSpy(origKey ).and.callThrough();
+            rollingAverageFakeGroup.valueAccessor( mySpy );
+
+            rollingAverageFakeGroup.top(Infinity);
+
+            expect( mySpy ).toHaveBeenCalled();
 
         });
 

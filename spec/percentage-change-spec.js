@@ -8,7 +8,8 @@ describe('accumulateGroupForPercentageChange', function() {
         dimensionDate,
         dimensionDateForFiltering,
         dimensionVisitsForFiltering,
-        groupVisitsByDate;
+        groupVisitsByDate,
+        groupVisitsByPlaceAndTerritoryByDate;
 
     /**
      * Rebuild crossfilter, dimension, and group with mock data.
@@ -17,6 +18,7 @@ describe('accumulateGroupForPercentageChange', function() {
     function rebuildMockCrossfilterWithMockData( mockData ) {
 
         crossfilterInstance = crossfilter( mockData );
+
         dimensionDate = crossfilterInstance.dimension(function (d) {
             return d.date
         });
@@ -26,7 +28,10 @@ describe('accumulateGroupForPercentageChange', function() {
         dimensionVisitsForFiltering = crossfilterInstance.dimension(function (d) {
             return d.visits
         });
-        groupVisitsByDate = dimensionDate.group().reduceSum( function(d) { return d.visits; } );
+
+        groupVisitsByDate = dimensionDate.group().reduceSum(function(d) {
+            return d.visits;
+        });
 
     }
 
@@ -86,13 +91,104 @@ describe('accumulateGroupForPercentageChange', function() {
 
     }
 
+    /**
+     * Mock unordered, redundant data with custom grouping functions
+     */
+    function mockCustomKeyValueData() {
+
+        setOfNumbers = [
+            { date: "2012-01-11", visits: 2,  place: "A", territory: "A" },
+            { date: "2012-01-12", visits: 3,  place: "B", territory: "A" },
+            { date: "2012-01-13", visits: 10, place: "A", territory: "B" },
+            { date: "2012-01-11", visits: 3,  place: "C", territory: "B" },
+            { date: "2012-01-15", visits: 10, place: "A", territory: "A" },
+            { date: "2012-01-12", visits: 12, place: "B", territory: "A" },
+            { date: "2012-01-13", visits: 7,  place: "A", territory: "B" }
+        ];
+
+        rebuildMockCrossfilterWithMockData( setOfNumbers );
+
+        var dimensionPlaces = crossfilterInstance.dimension(function (d) {
+            return d.place
+        });
+        var dimensionTerritories = crossfilterInstance.dimension(function (d) {
+            return d.territory
+        });
+        var knownPlaces = dimensionPlaces.group().all().map( function(d) { return d.key; } );
+        var knownTerritories = dimensionTerritories.group().all().map( function(d) { return d.key; } );
+
+        groupVisitsByPlaceAndTerritoryByDate = dimensionDate.group().reduce(
+            function ( p, v ) {
+                p.totalVisits += v.visits;
+
+                if ( p.places[ v.place ] ) {
+                    p.places[ v.place ].visits += v.visits;
+                } else {
+                    p.places[ v.place ] = {
+                        visits: v.visits
+                    };
+                }
+
+                if ( p.territories[ v.territory ] ) {
+                    p.territories[ v.territory ].visits += v.visits;
+                } else {
+                    p.territories[ v.territory ] = {
+                        visits: v.visits
+                    };
+                }
+                return p;
+            },
+            function ( p, v ) {
+                p.totalVisits -= v.visits;
+
+                if ( p.places[ v.place ] ) {
+                    p.places[ v.place ].visits -= v.visits;
+                } else {
+                    delete p.places[ v.place ];
+                }
+
+                if ( p.territories[ v.territory ] ) {
+                    p.territories[ v.territory ].visits -= v.visits;
+                } else {
+                    delete p.territories[ v.territory ];
+                }
+                return p;
+            },
+            function () {
+                var obj = {
+                    totalVisits: 0,
+                    places     : {},
+                    territories: {}
+                };
+
+                // Make sure each place is represented, with at least 0
+                var t = knownPlaces.length,
+                    i = -1;
+                while ( ++i < t ) {
+                    obj.places[ knownPlaces[i] ] = {
+                        visits: 0
+                    };
+                }
+                // Make sure each territory is represented, with at least 0
+                var t = knownTerritories.length,
+                    i = -1;
+                while ( ++i < t ) {
+                    obj.territories[ knownTerritories[i] ] = {
+                        visits: 0
+                    };
+                }
+
+                return obj;
+            }
+        );
+
+    }
 
     beforeEach(function() {
         global = (function() { return this; })();
         crossfilterMa = global['crossfilter-ma'];
 
         mockOrderedUniqueData();
-
     });
 
     afterEach(function() {
@@ -102,6 +198,7 @@ describe('accumulateGroupForPercentageChange', function() {
         dimensionDateForFiltering = null;
         dimensionVisitsForFiltering = null;
         groupVisitsByDate = null;
+        groupVisitsByPlaceAndTerritoryByDate = null;
 
         global = null;
         crossfilterMa = null;
@@ -119,6 +216,7 @@ describe('accumulateGroupForPercentageChange', function() {
                 };
 
                 expect( tryWithNothing ).toThrowError('You must pass in a crossfilter group!');
+
             });
 
             it('and refuses a number', function() {
@@ -128,6 +226,7 @@ describe('accumulateGroupForPercentageChange', function() {
                 };
 
                 expect( tryWithNumber ).toThrowError('You must pass in a crossfilter group!');
+
             });
 
             it('and refuses a string', function() {
@@ -137,6 +236,7 @@ describe('accumulateGroupForPercentageChange', function() {
                 };
 
                 expect( tryWithString ).toThrowError('You must pass in a crossfilter group!');
+
             });
 
             it('and refuses an object that does not look like a crossfilter group', function() {
@@ -148,6 +248,7 @@ describe('accumulateGroupForPercentageChange', function() {
                 expect( tryWithObject ).toThrowError('You must pass in a crossfilter group!');
                 expect( tryWithObject ).toThrowError();
                 expect( tryWithObject ).toThrow();
+
             });
 
             it('and allows an object that does look like a crossfilter group', function() {
@@ -158,6 +259,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
                 expect( tryWithObjectThatMatches ).not.toThrow();
                 expect( tryWithObjectThatMatches ).not.toThrowError();
+
             });
 
         });
@@ -204,9 +306,7 @@ describe('accumulateGroupForPercentageChange', function() {
             it('takes boolean coerce-able parameters as the new state of the debug flag', function() {
 
                 var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
-
                 percentageChangeFakeGroup._debug( true );
-
                 expect( percentageChangeFakeGroup._debug() ).toBeTruthy();
 
             });
@@ -216,8 +316,91 @@ describe('accumulateGroupForPercentageChange', function() {
         it('defaults to off', function() {
 
             var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
-
             expect( percentageChangeFakeGroup._debug() ).toBeFalsy();
+
+        });
+
+    });
+
+    describe('key accessors', function() {
+
+        it('_defaultKeyAccessor() returns default key accessor', function() {
+
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+            expect( percentageChangeFakeGroup._defaultKeyAccessor() ).toEqual( jasmine.any( Function ) );
+
+        });
+
+        describe('keyAccessor()', function() {
+
+            it('returns current keyAccessor', function() {
+
+                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+                expect( percentageChangeFakeGroup.keyAccessor() ).toEqual( jasmine.any( Function ) );
+
+            });
+
+            it('allows configuring keyAccessor', function() {
+
+                var myAccessor = jasmine.createSpy('myAccessor'),
+                    origAccessor;
+                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+                origAccessor = percentageChangeFakeGroup.keyAccessor();
+
+                percentageChangeFakeGroup.keyAccessor( myAccessor );
+
+                expect( myAccessor ).not.toHaveBeenCalled();
+
+                expect( percentageChangeFakeGroup.keyAccessor() ).toBe(myAccessor);
+                expect( percentageChangeFakeGroup.keyAccessor() ).not.toBe(origAccessor);
+
+                percentageChangeFakeGroup.all();
+
+                expect( myAccessor ).toHaveBeenCalled();
+
+            });
+
+        });
+
+    });
+
+    describe('value accessors', function() {
+
+        it('_defaultValueAccessor() returns default value accessor', function() {
+
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+            expect( percentageChangeFakeGroup._defaultValueAccessor() ).toEqual( jasmine.any( Function ) );
+
+        });
+
+        describe('valueAccessor()', function() {
+
+            it('returns current valueAccessor', function() {
+
+                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+                expect( percentageChangeFakeGroup.valueAccessor() ).toEqual( jasmine.any( Function ) );
+
+            });
+
+            it('allows configuring valueAccessor', function() {
+
+                var myAccessor = jasmine.createSpy('myAccessor'),
+                    origAccessor;
+                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+                origAccessor = percentageChangeFakeGroup.valueAccessor();
+
+                percentageChangeFakeGroup.valueAccessor( myAccessor );
+
+                expect( myAccessor ).not.toHaveBeenCalled();
+
+                expect( percentageChangeFakeGroup.valueAccessor() ).toBe(myAccessor);
+                expect( percentageChangeFakeGroup.valueAccessor() ).not.toBe(origAccessor);
+
+                percentageChangeFakeGroup.all();
+
+                expect( myAccessor ).toHaveBeenCalled();
+
+            });
 
         });
 
@@ -403,6 +586,251 @@ describe('accumulateGroupForPercentageChange', function() {
             var results = percentageChangeFakeGroup.all();
 
             expect( results[0]._debug ).toBeDefined();
+
+        });
+
+
+        it('uses custom key accessor', function() {
+
+            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate, 3 );
+
+            var origKey = rollingAverageFakeGroup.keyAccessor();
+            var mySpy = jasmine.createSpy(origKey ).and.callThrough();
+            rollingAverageFakeGroup.keyAccessor( mySpy );
+
+            rollingAverageFakeGroup.all();
+
+            expect( mySpy ).toHaveBeenCalled();
+
+        });
+
+        it('uses custom value accessor', function() {
+
+            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate, 3 );
+
+            var origKey = rollingAverageFakeGroup.valueAccessor();
+            var mySpy = jasmine.createSpy(origKey ).and.callThrough();
+            rollingAverageFakeGroup.valueAccessor( mySpy );
+
+            rollingAverageFakeGroup.all();
+
+            expect( mySpy ).toHaveBeenCalled();
+
+        });
+
+
+
+        describe('works with custom groupings', function() {
+
+            var percentageChangeGroup;
+
+            beforeEach(function() {
+                mockCustomKeyValueData();
+                percentageChangeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByPlaceAndTerritoryByDate );
+                percentageChangeGroup._debug(true);
+
+            });
+
+            afterEach(function() {
+                percentageChangeGroup = null;
+            });
+
+            it('maintains original custom value', function() {
+
+                var resultsAll;
+                var all = groupVisitsByPlaceAndTerritoryByDate.all();
+                resultsAll = percentageChangeGroup.all();
+
+                expect( all[ 0 ].key ).toBe( resultsAll[ 0 ].key );
+                expect( all[ 0 ].value ).toBe( resultsAll[ 0 ].value );
+                expect( all[ 2 ].key ).toBe( resultsAll[ 2 ].key );
+                expect( all[ 2 ].value ).toBe( resultsAll[ 2 ].value );
+                expect( resultsAll[ 2 ].value ).toEqual( {
+                    totalVisits: 17,
+                    places: {
+                        A: {
+                            visits: 17
+                        },
+                        B: {
+                            visits: 0
+                        },
+                        C: {
+                            visits: 0
+                        }
+                    },
+                    territories: {
+                        A: {
+                            visits: 0
+                        },
+                        B: {
+                            visits: 17
+                        }
+                    }
+                } );
+
+            });
+
+            it('adds percentage changed', function() {
+
+                var all = groupVisitsByPlaceAndTerritoryByDate.all();
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( all[ 0 ].percentageChange ).not.toBeDefined();
+                expect( resultsAll[ 0 ].percentageChange ).toBeDefined();
+            });
+
+            it('allows getting the % change of the total visits', function() {
+
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 0 ].percentageChange ).not.toBe( 1 );
+                expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 1 ].percentageChange ).not.toBe( 200 );
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 2 ].percentageChange ).not.toBe( 13.33 );
+                expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 3 ].percentageChange ).not.toBe( 41.18 );
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+
+                resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( 200 );
+                expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( 13.33 );
+                expect( resultsAll[ 3 ].percentageChange ).toBeCloseTo( -41.18 );
+
+            });
+
+            it('allows getting the % change of Place A', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.A.visits; } );
+
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 3 ].percentageChange ).toBeCloseTo( -41.18 );
+
+            });
+
+            it('allows getting the % change of Place B', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.B.visits; } );
+
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 2 ].percentageChange ).toBe( -100 );
+                expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
+
+            });
+
+            it('allows getting the % change of each place', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.A.visits; } );
+
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].percentageChange ).not.toBeDefined();
+                expect( resultsAll[ 1 ].percentageChange ).not.toBeDefined();
+                expect( resultsAll[ 2 ].percentageChange ).not.toBeDefined();
+                expect( resultsAll[ 3 ].percentageChange ).not.toBeDefined();
+
+                expect( resultsAll[ 0 ].value.places.A.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.places.A.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].value.places.A.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 3 ].value.places.A.percentageChange ).toBeCloseTo( -41.18 );
+
+                expect( resultsAll[ 0 ].value.places.B.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.places.B.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 2 ].value.places.B.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 3 ].value.places.B.percentageChange ).toBe( 0 );
+
+            });
+
+            it('allows getting the % change of territory A', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.territories.A.visits; } );
+
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( 650 );
+                expect( resultsAll[ 2 ].percentageChange ).toBe( -100 );
+                expect( resultsAll[ 3 ].percentageChange ).toBe( Infinity );
+
+            });
+
+            it('allows getting the % change of territory B', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.territories.B.visits; } );
+
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
+
+            });
+
+            it('allows getting the % change of each territory', function() {
+
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].percentageChange ).not.toBeDefined();
+                expect( resultsAll[ 1 ].percentageChange ).not.toBeDefined();
+                expect( resultsAll[ 2 ].percentageChange ).not.toBeDefined();
+                expect( resultsAll[ 3 ].percentageChange ).not.toBeDefined();
+
+                expect( resultsAll[ 0 ].value.territories.A.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.territories.A.percentageChange ).toBe( 650 );
+                expect( resultsAll[ 2 ].value.territories.A.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 3 ].value.territories.A.percentageChange ).toBe( Infinity );
+
+                expect( resultsAll[ 0 ].value.territories.B.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.territories.B.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].value.territories.B.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 3 ].value.territories.B.percentageChange ).toBe( -100 );
+
+            });
+
+            it('allows getting the % change of each place and territory and total', function() {
+
+                percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+
+                var resultsAll = percentageChangeGroup.all();
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( 200 );
+                expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( 13.33 );
+                expect( resultsAll[ 3 ].percentageChange ).toBeCloseTo( -41.18 );
+
+                expect( resultsAll[ 0 ].value.places.A.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.places.A.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].value.places.A.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 3 ].value.places.A.percentageChange ).toBeCloseTo( -41.18 );
+
+                expect( resultsAll[ 0 ].value.places.B.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.places.B.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 2 ].value.places.B.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 3 ].value.places.B.percentageChange ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].value.territories.A.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.territories.A.percentageChange ).toBe( 650 );
+                expect( resultsAll[ 2 ].value.territories.A.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 3 ].value.territories.A.percentageChange ).toBe( Infinity );
+
+                expect( resultsAll[ 0 ].value.territories.B.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].value.territories.B.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].value.territories.B.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 3 ].value.territories.B.percentageChange ).toBe( -100 );
+                
+            });
 
         });
 
@@ -661,6 +1089,35 @@ describe('accumulateGroupForPercentageChange', function() {
             var results2 = percentageChangeFakeGroup.top(Infinity);
 
             expect( results2[0]._debug ).toBeDefined();
+
+        });
+
+
+        it('uses custom key accessor', function() {
+
+            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate, 3 );
+
+            var origKey = rollingAverageFakeGroup.keyAccessor();
+            var mySpy = jasmine.createSpy(origKey ).and.callThrough();
+            rollingAverageFakeGroup.keyAccessor( mySpy );
+
+            rollingAverageFakeGroup.top(Infinity);
+
+            expect( mySpy ).toHaveBeenCalled();
+
+        });
+
+        it('uses custom value accessor', function() {
+
+            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate, 3 );
+
+            var origKey = rollingAverageFakeGroup.valueAccessor();
+            var mySpy = jasmine.createSpy(origKey ).and.callThrough();
+            rollingAverageFakeGroup.valueAccessor( mySpy );
+
+            rollingAverageFakeGroup.top(Infinity);
+
+            expect( mySpy ).toHaveBeenCalled();
 
         });
 

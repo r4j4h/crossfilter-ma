@@ -21,12 +21,8 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
     // Handle defaults
     debugMode = ( typeof debugMode !== 'undefined' ) ? !!debugMode : false;
 
-    var keyAccessor = function( d ) {
-        return d.key;
-    };
-    var valueAccessor = function( d ) {
-        return d.value;
-    };
+    var _keyAccessor;
+    var _valueAccessor;
 
     return {
 
@@ -44,8 +40,41 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
             debugMode = !!_;
         },
 
-        all: function () {
+        _defaultKeyAccessor: function() {
+            return function( d ) {
+                return d.key;
+            };
+        },
+        _defaultValueAccessor: function() {
+            return function( d ) {
+                return d.value;
+            };
+        },
 
+
+        keyAccessor: function( _ ) {
+            if ( typeof _ === 'undefined' ) {
+                if ( typeof _keyAccessor === 'undefined' ) {
+                    _keyAccessor = this._defaultKeyAccessor();
+                }
+                return _keyAccessor;
+            }
+            _keyAccessor = _;
+        },
+
+        valueAccessor: function( _ ) {
+            if ( typeof _ === 'undefined' ) {
+                if ( typeof _valueAccessor === 'undefined' ) {
+                    _valueAccessor = this._defaultValueAccessor();
+                }
+                return _valueAccessor;
+            }
+            _valueAccessor = _;
+        },
+
+
+        all: function () {
+            var _this = this;
             var all = sourceGroup.all();
             var fullDates = {};
 
@@ -57,8 +86,8 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
 
             var reducer = myGroupingOnDate.reduce(
                 function ( p, v ) {
-                    var selDate = keyAccessor( v );
-                    var selValue = valueAccessor( v );
+                    var selDate = _this.keyAccessor()( v );
+                    var selValue = _this.valueAccessor()( v );
 
                     if ( fullDates[ selDate ] ) {
                         fullDates[ selDate ].myValue += selValue;
@@ -70,8 +99,8 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
                     return p;
                 },
                 function ( p, v ) {
-                    var selDate = keyAccessor( v );
-                    var selValue = valueAccessor( v );
+                    var selDate = _this.keyAccessor()( v );
+                    var selValue = _this.valueAccessor()( v );
 
                     if ( fullDates[ selDate ] ) {
                         fullDates[ selDate ].quantity -= selValue;
@@ -86,17 +115,27 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
             );
 
             reducer.all();
+            var orderedDates = Object.keys( fullDates ).sort();
 
             var accumulatedAll = all.map( function( d, i, arr ) {
 
                 var thisDay = d;
-                var prevDay = arr[i - 1];
                 var perc = 0;
 
-                if ( prevDay ) {
-                    var diff = valueAccessor( thisDay ) - valueAccessor( prevDay );
+                var thisDayIndex = orderedDates.indexOf( _this.keyAccessor()( d ) );
+                var prevDayId = orderedDates[ thisDayIndex - 1 ];
+                var prevDayValue;
+
+                var prevDay = arr[i - 1];
+
+                if ( prevDayId ) {
+                    var prevDayBlock = fullDates[ prevDayId ];
+                    prevDayValue = prevDayBlock.myValue;
+
+                    var diff = _this.valueAccessor()( thisDay ) - prevDayValue;
+
                     if ( diff !== 0 ) {
-                        var prop = diff / valueAccessor( prevDay );
+                        var prop = diff / prevDayValue;
                         perc = prop * 100;
                     } else {
                         perc = 0;
@@ -113,8 +152,8 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
                     returnObj._debug = {
                         'thisDayKey': thisDay.key,
                         'thisDayValue': thisDay.value,
-                        'prevDayKey': prevDay ? prevDay.key : 'None',
-                        'prevDayValue': prevDay ? prevDay.value : 'None'
+                        'prevDayKey': prevDayId ? prevDayId : 'None',
+                        'prevDayValue': prevDayValue ? prevDayValue : 'None'
                     };
                 }
 
@@ -126,6 +165,7 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
 
         top: function() {
 
+            var _this = this;
             var all = sourceGroup.top.apply( sourceGroup, arguments );
             var fullDates = {};
 
@@ -137,8 +177,8 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
 
             var reducer = myGroupingOnDate.reduce(
                 function ( p, v ) {
-                    var selDate = keyAccessor( v );
-                    var selValue = valueAccessor( v );
+                    var selDate = _this.keyAccessor()( v );
+                    var selValue = _this.valueAccessor()( v );
 
                     if ( fullDates[ selDate ] ) {
                         fullDates[ selDate ].myValue += selValue;
@@ -150,8 +190,8 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
                     return p;
                 },
                 function ( p, v ) {
-                    var selDate = keyAccessor( v );
-                    var selValue = valueAccessor( v );
+                    var selDate = _this.keyAccessor()( v );
+                    var selValue = _this.valueAccessor()( v );
 
                     if ( fullDates[ selDate ] ) {
                         fullDates[ selDate ].quantity -= selValue;
@@ -166,14 +206,14 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
             );
 
             reducer.all();
+            var orderedDates = Object.keys( fullDates ).sort();
 
             var accumulatedAll = all.map( function( d, i, arr ) {
 
                 var thisDay = d;
                 var perc = 0;
 
-                var orderedDates = Object.keys( fullDates ).sort();
-                var thisDayIndex = orderedDates.indexOf( keyAccessor( d ) );
+                var thisDayIndex = orderedDates.indexOf( _this.keyAccessor()( d ) );
                 var prevDayId = orderedDates[ thisDayIndex - 1 ];
                 var prevDayValue;
 
@@ -181,7 +221,7 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
                     var prevDayBlock = fullDates[ prevDayId ];
                     prevDayValue = prevDayBlock.myValue;
 
-                    var diff = valueAccessor( thisDay ) - prevDayValue;
+                    var diff = _this.valueAccessor()( thisDay ) - prevDayValue;
 
                     if ( diff !== 0 ) {
                         var prop = diff / prevDayValue;
