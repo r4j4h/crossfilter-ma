@@ -16,5 +16,5 @@
  *  limitations under the License.
  */
 
-(function() { function _crossfilterMA(d3, crossfilter) {
+(function() { function _crossfilterMA(crossfilter) {
     'use strict';
