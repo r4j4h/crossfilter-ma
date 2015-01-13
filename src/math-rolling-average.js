@@ -9,15 +9,18 @@ var crossfilterMA = crossfilterMA || {};
  * @param {{all: Function, top: Function}} sourceGroup Crossfilter group
  * @param {Number} [ndays] Number of datapoints for moving average. Defaults to the current value of
  * crossfilterMA.constants.DEFAULT_MOVING_AVERAGE_NODES if not provided.
+ * @param {Boolean} [debugMode] Includes a debugging object under the `_debug` key in the result objects, defaults to
+ * false.
  * @returns {{all: Function, top: Function}}
  */
-crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays ) {
+crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays, debugMode ) {
     if ( !sourceGroup || !sourceGroup.all || typeof sourceGroup.all !== 'function' ) {
         throw new Error( 'You must pass in a crossfilter group!' );
     }
 
     // Handle defaults
     ndays = ( typeof ndays !== 'undefined' ) ? ndays : crossfilterMA.constants.DEFAULT_MOVING_AVERAGE_NODES;
+    debugMode = ( typeof debugMode !== 'undefined' ) ? !!debugMode : false;
 
     var keyAccessor = function( d ) {
         return d.key;
@@ -39,6 +42,20 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 return ndays;
             }
             ndays = _;
+        },
+
+        /**
+         * Set or get the state of the debugging flag, used to include a debugging object under the `_debug` key in
+         * the result objects, defaults to false.
+         *
+         * @param {Number} [_]
+         * @returns {Number}
+         */
+        _debug: function( _ ) {
+            if ( typeof _ === 'undefined' ) {
+                return debugMode;
+            }
+            debugMode = _;
         },
 
         all: function () {
@@ -67,7 +84,9 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                         //var thisDaysTotals = sourceGroup.top( 1 );
                         numsToAverage++;
                         thisCumulate += targetDay.value;
-                        thisResult.push( { 'key': targetDay.key, 'value': targetDay.value } );
+                        if ( debugMode ) {
+                            thisResult.push( { 'key': targetDay.key, 'value': targetDay.value } );
+                        }
 
                     }
                 }
@@ -75,20 +94,27 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 numsToAverage++;
                 thisCumulate += d.value;
 
-                cumulate += d.value;
-                thisResult.push( { 'key': d.key, 'value': d.value } );
+                if ( debugMode ) {
+                    cumulate += d.value;
+                    thisResult.push( { 'key': d.key, 'value': d.value } );
+                }
 
                 thisAverage = thisCumulate / numsToAverage;
 
-                return {
-                    key: d.key,
-                    value: d.value,
-                    rollingAverage: thisAverage,
-                    _debug: {
+                var returnObj = {
+                    key           : d.key,
+                    value         : d.value,
+                    rollingAverage: thisAverage
+                };
+
+                if ( debugMode ) {
+                    returnObj._debug = {
                         'cumulate': cumulate,
                         thisResult: thisResult
-                    }
-                };
+                    };
+                }
+
+                return returnObj;
             } );
 
             return accumulatedAll;
@@ -161,7 +187,10 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
 
                         numsToAverage++;
                         thisCumulate += targetDayValue;
-                        thisResult.push( { 'key': targetDayId, 'value': targetDayValue } );
+
+                        if ( debugMode ) {
+                            thisResult.push( { 'key': targetDayId, 'value': targetDayValue } );
+                        }
                     }
                 }
 
@@ -169,20 +198,27 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 thisCumulate += d.value;
 
 
-                cumulate += d.value;
-                thisResult.push( { 'key': d.key, 'value': d.value } );
+                if ( debugMode ) {
+                    cumulate += d.value;
+                    thisResult.push( { 'key': d.key, 'value': d.value } );
+                }
 
                 thisAverage = thisCumulate / numsToAverage;
 
-                return {
+                var returnObj = {
                     key: d.key,
                     value: d.value,
-                    rollingAverage: thisAverage,
-                    _debug: {
+                    rollingAverage: thisAverage
+                };
+
+                if ( debugMode ) {
+                    returnObj._debug = {
                         'cumulate': cumulate,
                         thisResult: thisResult
-                    }
-                };
+                    };
+                }
+
+                return returnObj;
             } );
 
             return accumulatedAll;

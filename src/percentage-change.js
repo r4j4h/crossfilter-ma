@@ -9,12 +9,17 @@ var crossfilterMA = crossfilterMA || {};
  *
  * @param {{all: Function, top: Function}} sourceGroup Crossfilter group
  * crossfilterMA.constants.DEFAULT_MOVING_AVERAGE_NODES if not provided.
+ * @param {Boolean} [debugMode] Includes a debugging object under the `_debug` key in the result objects, defaults to
+ * false.
  * @returns {{all: Function, top: Function}}
  */
-crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup ) {
+crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugMode ) {
     if ( !sourceGroup || !sourceGroup.all || typeof sourceGroup.all !== 'function' ) {
         throw new Error( 'You must pass in a crossfilter group!' );
     }
+
+    // Handle defaults
+    debugMode = ( typeof debugMode !== 'undefined' ) ? !!debugMode : false;
 
     var keyAccessor = function( d ) {
         return d.key;
@@ -24,6 +29,20 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup ) {
     };
 
     return {
+
+        /**
+         * Set or get the state of the debugging flag, used to include a debugging object under the `_debug` key in
+         * the result objects, defaults to false.
+         *
+         * @param {Number} [_]
+         * @returns {Number}
+         */
+        _debug: function( _ ) {
+            if ( typeof _ === 'undefined' ) {
+                return debugMode;
+            }
+            debugMode = _;
+        },
 
         all: function () {
 
@@ -84,17 +103,22 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup ) {
                     }
                 }
 
-                return {
+                var returnObj = {
                     key: d.key,
                     value: d.value,
-                    percentageChange: perc,
-                    _debug: {
+                    percentageChange: perc
+                };
+
+                if ( debugMode ) {
+                    returnObj._debug = {
                         'thisDayKey': thisDay.key,
                         'thisDayValue': thisDay.value,
                         'prevDayKey': prevDay ? prevDay.key : 'None',
                         'prevDayValue': prevDay ? prevDay.value : 'None'
-                    }
-                };
+                    };
+                }
+
+                return returnObj;
             } );
 
             return accumulatedAll;
@@ -167,17 +191,22 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup ) {
                     }
                 }
 
-                return {
+                var returnObj = {
                     key: d.key,
                     value: d.value,
-                    percentageChange: perc,
-                    _debug: {
+                    percentageChange: perc
+                };
+
+                if ( debugMode ) {
+                    returnObj._debug = {
                         'thisDayKey': thisDay.key,
                         'thisDayValue': thisDay.value,
                         'prevDayKey': prevDayId ? prevDayId : 'None',
                         'prevDayValue': prevDayId ? prevDayValue : 'None'
-                    }
-                };
+                    };
+                }
+
+                return returnObj;
             } );
 
             return accumulatedAll;

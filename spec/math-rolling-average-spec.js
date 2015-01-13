@@ -55,55 +55,97 @@ describe('accumulateGroupForNDayMovingAverage', function() {
         crossfilterMa = null;
     });
 
+    describe('constructor', function() {
 
-    describe('requires a crossfilter group', function() {
+        describe('requires a crossfilter group', function() {
 
-        it('and refuses nothing', function() {
+            it('and refuses nothing', function() {
 
-            var tryWithNothing = function() {
-                crossfilterMa.accumulateGroupForNDayMovingAverage();
-            };
+                var tryWithNothing = function() {
+                    crossfilterMa.accumulateGroupForNDayMovingAverage();
+                };
 
-            expect( tryWithNothing ).toThrowError('You must pass in a crossfilter group!');
+                expect( tryWithNothing ).toThrowError('You must pass in a crossfilter group!');
+            });
+
+            it('and refuses a number', function() {
+
+                var tryWithNumber = function() {
+                    crossfilterMa.accumulateGroupForNDayMovingAverage(3);
+                };
+
+                expect( tryWithNumber ).toThrowError('You must pass in a crossfilter group!');
+            });
+
+            it('and refuses a string', function() {
+
+                var tryWithString = function() {
+                    crossfilterMa.accumulateGroupForNDayMovingAverage('lorem');
+                };
+
+                expect( tryWithString ).toThrowError('You must pass in a crossfilter group!');
+            });
+
+            it('and refuses an object that does not look like a crossfilter group', function() {
+
+                var tryWithObject = function() {
+                    crossfilterMa.accumulateGroupForNDayMovingAverage({ key: 'lorem', value: 'ipsum' });
+                };
+
+                expect( tryWithObject ).toThrowError('You must pass in a crossfilter group!');
+                expect( tryWithObject ).toThrowError();
+                expect( tryWithObject ).toThrow();
+            });
+
+            it('and allows an object that does look like a crossfilter group', function() {
+
+                var tryWithObjectThatMatches = function() {
+                    crossfilterMa.accumulateGroupForNDayMovingAverage({ all: function() {} });
+                };
+
+                expect( tryWithObjectThatMatches ).not.toThrow();
+                expect( tryWithObjectThatMatches ).not.toThrowError();
+            });
+
         });
 
-        it('and refuses a number', function() {
+        it('allows configuring ndays', function() {
 
-            var tryWithNumber = function() {
-                crossfilterMa.accumulateGroupForNDayMovingAverage(3);
-            };
+            var firstRollingAverageFakeGroup;
 
-            expect( tryWithNumber ).toThrowError('You must pass in a crossfilter group!');
+            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( { all: function() {} }, undefined );
+
+            expect( firstRollingAverageFakeGroup.ndays() ).toBe( crossfilterMa.constants.DEFAULT_MOVING_AVERAGE_NODES );
+            expect( firstRollingAverageFakeGroup.ndays() ).not.toBe( 16 );
+
+            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( { all: function() {} }, 3 );
+
+            expect( firstRollingAverageFakeGroup.ndays() ).not.toBe( crossfilterMa.constants.DEFAULT_MOVING_AVERAGE_NODES );
+            expect( firstRollingAverageFakeGroup.ndays() ).toBe( 3 );
+
+            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( { all: function() {} }, 16 );
+
+            expect( firstRollingAverageFakeGroup.ndays() ).not.toBe( crossfilterMa.constants.DEFAULT_MOVING_AVERAGE_NODES );
+            expect( firstRollingAverageFakeGroup.ndays() ).toBe( 16 );
+
         });
 
-        it('and refuses a string', function() {
+        it('allows configuring debug flag', function() {
 
-            var tryWithString = function() {
-                crossfilterMa.accumulateGroupForNDayMovingAverage('lorem');
-            };
+            var firstRollingAverageFakeGroup;
 
-            expect( tryWithString ).toThrowError('You must pass in a crossfilter group!');
-        });
+            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( { all: function() {} }, undefined, undefined );
 
-        it('and refuses an object that does not look like a crossfilter group', function() {
+            expect( firstRollingAverageFakeGroup._debug() ).toBeFalsy();
 
-            var tryWithObject = function() {
-                crossfilterMa.accumulateGroupForNDayMovingAverage({ key: 'lorem', value: 'ipsum' });
-            };
+            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( { all: function() {} }, undefined, false );
 
-            expect( tryWithObject ).toThrowError('You must pass in a crossfilter group!');
-            expect( tryWithObject ).toThrowError();
-            expect( tryWithObject ).toThrow();
-        });
+            expect( firstRollingAverageFakeGroup._debug() ).toBeFalsy();
 
-        it('and allows an object that does look like a crossfilter group', function() {
+            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( { all: function() {} }, undefined, true );
 
-            var tryWithObjectThatMatches = function() {
-                crossfilterMa.accumulateGroupForNDayMovingAverage({ all: function() {} });
-            };
+            expect( firstRollingAverageFakeGroup._debug() ).toBeTruthy();
 
-            expect( tryWithObjectThatMatches ).not.toThrow();
-            expect( tryWithObjectThatMatches ).not.toThrowError();
         });
 
     });
@@ -149,11 +191,51 @@ describe('accumulateGroupForNDayMovingAverage', function() {
     });
 
 
+    describe('_debug()', function() {
+
+        describe('when given no parameters', function() {
+
+            it('returns the current state of the debug flag', function() {
+
+                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+
+                expect( percentageChangeFakeGroup._debug() ).toBeFalsy();
+
+            });
+
+        });
+
+        describe('when given parameters', function() {
+
+            it('takes boolean coerce-able parameters as the new state of the debug flag', function() {
+
+                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+
+                percentageChangeFakeGroup._debug( true );
+
+                expect( percentageChangeFakeGroup._debug() ).toBeTruthy();
+
+            });
+
+        });
+
+        it('defaults to off', function() {
+
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+
+            expect( percentageChangeFakeGroup._debug() ).toBeFalsy();
+
+        });
+
+    });
+
+
     describe('all()', function() {
 
         it('calculate 2 point rolling average over a set of numbers', function() {
 
             var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 2 );
+            rollingAverageFakeGroup._debug( true );
 
             var results = rollingAverageFakeGroup.all();
 
@@ -183,6 +265,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
         it('calculate 3 point rolling average over set of numbers', function() {
 
             var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 3 );
+            rollingAverageFakeGroup._debug( true );
 
             var results = rollingAverageFakeGroup.all();
 
@@ -196,14 +279,14 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             expect( results[2].rollingAverage ).toBe( 5 );
             expect( results[2]._debug.thisResult.length ).toBe( 3 );
             expect( results[3].key ).toBe( '2012-01-14' );
-            expect( results[3].rollingAverage ).toBe( 5.333333333333333 );
+            expect( results[3].rollingAverage ).toBeCloseTo( 5.333333333333333 );
             expect( results[3]._debug.thisResult.length ).toBe( 3 );
             expect( results[4].key ).toBe( '2012-01-15' );
-            expect( results[4].rollingAverage ).toBe( 7.666666666666667 );
+            expect( results[4].rollingAverage ).toBeCloseTo( 7.666666666666667 );
             expect( results[5].key ).toBe( '2012-01-16' );
-            expect( results[5].rollingAverage ).toBe( 8.333333333333334 );
+            expect( results[5].rollingAverage ).toBeCloseTo( 8.333333333333334 );
             expect( results[6].key ).toBe( '2012-01-17' );
-            expect( results[6].rollingAverage ).toBe( 9.666666666666666 );
+            expect( results[6].rollingAverage ).toBeCloseTo( 9.666666666666666 );
 
         });
 
@@ -239,6 +322,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
         it('uses correct dates', function() {
 
             var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 3 );
+            rollingAverageFakeGroup._debug( true );
 
             var results = rollingAverageFakeGroup.all();
 
@@ -262,6 +346,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
         it('supports filtering in crossfilter', function() {
 
             var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 3 );
+            percentageChangeFakeGroup._debug( true );
 
             var results = percentageChangeFakeGroup.all();
 
@@ -275,14 +360,14 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             expect( results[2].rollingAverage ).toBe( 5 );
             expect( results[2]._debug.thisResult.length ).toBe( 3 );
             expect( results[3].key ).toBe( '2012-01-14' );
-            expect( results[3].rollingAverage ).toBe( 5.333333333333333 );
+            expect( results[3].rollingAverage ).toBeCloseTo( 5.333333333333333 );
             expect( results[3]._debug.thisResult.length ).toBe( 3 );
             expect( results[4].key ).toBe( '2012-01-15' );
-            expect( results[4].rollingAverage ).toBe( 7.666666666666667 );
+            expect( results[4].rollingAverage ).toBeCloseTo( 7.666666666666667 );
             expect( results[5].key ).toBe( '2012-01-16' );
-            expect( results[5].rollingAverage ).toBe( 8.333333333333334 );
+            expect( results[5].rollingAverage ).toBeCloseTo( 8.333333333333334 );
             expect( results[6].key ).toBe( '2012-01-17' );
-            expect( results[6].rollingAverage ).toBe( 9.666666666666666 );
+            expect( results[6].rollingAverage ).toBeCloseTo( 9.666666666666666 );
 
             dimensionVisitsForFiltering.filterRange( [ 3,11 ] );
 
@@ -295,17 +380,33 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             expect( results[1].rollingAverage ).toBe( 1.5 );
             expect( results[1]._debug.thisResult.length ).toBe( 2 );
             expect( results[2].key ).toBe( '2012-01-13' );
-            expect( results[2].rollingAverage ).toBe( 4.333333333333333 );
+            expect( results[2].rollingAverage ).toBeCloseTo( 4.333333333333333 );
             expect( results[2]._debug.thisResult.length ).toBe( 3 );
             expect( results[3].key ).toBe( '2012-01-14' );
-            expect( results[3].rollingAverage ).toBe( 5.333333333333333 );
+            expect( results[3].rollingAverage ).toBeCloseTo( 5.333333333333333 );
             expect( results[3]._debug.thisResult.length ).toBe( 3 );
             expect( results[4].key ).toBe( '2012-01-15' );
-            expect( results[4].rollingAverage ).toBe( 7.666666666666667 );
+            expect( results[4].rollingAverage ).toBeCloseTo( 7.666666666666667 );
             expect( results[5].key ).toBe( '2012-01-16' );
-            expect( results[5].rollingAverage ).toBe( 4.333333333333333 );
+            expect( results[5].rollingAverage ).toBeCloseTo( 4.333333333333333 );
             expect( results[6].key ).toBe( '2012-01-17' );
-            expect( results[6].rollingAverage ).toBe( 5.666666666666667 );
+            expect( results[6].rollingAverage ).toBeCloseTo( 5.666666666666667 );
+
+        });
+
+        it('only returns debug information when debug flag is engaged', function() {
+
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+
+            var results = percentageChangeFakeGroup.all();
+
+            expect( results[0]._debug ).not.toBeDefined();
+
+            percentageChangeFakeGroup._debug( true );
+
+            var results = percentageChangeFakeGroup.all();
+
+            expect( results[0]._debug ).toBeDefined();
 
         });
 
@@ -317,6 +418,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
         it('calculate 2 point rolling average over a set of numbers', function() {
 
             var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+            rollingAverageFakeGroup._debug( true );
 
             var results = rollingAverageFakeGroup.top(Infinity);
 
@@ -345,23 +447,24 @@ describe('accumulateGroupForNDayMovingAverage', function() {
         it('calculate 3 point rolling average over set of numbers', function() {
 
             var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 3 );
+            rollingAverageFakeGroup._debug( true );
 
             var results = rollingAverageFakeGroup.top(Infinity);
 
             expect( results[0].key ).toBe( '2012-01-16' );
-            expect( results[0].rollingAverage ).toBe( 8.333333333333334 );
+            expect( results[0].rollingAverage ).toBeCloseTo( 8.333333333333334 );
             expect( results[0]._debug.thisResult.length ).toBe( 3 );
             expect( results[1].key ).toBe( '2012-01-15' );
-            expect( results[1].rollingAverage ).toBe( 7.666666666666667 );
+            expect( results[1].rollingAverage ).toBeCloseTo( 7.666666666666667 );
             expect( results[1]._debug.thisResult.length ).toBe( 3 );
             expect( results[2].key ).toBe( '2012-01-13' );
             expect( results[2].rollingAverage ).toBe( 5 );
             expect( results[2]._debug.thisResult.length ).toBe( 3 );
             expect( results[3].key ).toBe( '2012-01-17' );
-            expect( results[3].rollingAverage ).toBe( 9.666666666666666 );
+            expect( results[3].rollingAverage ).toBeCloseTo( 9.666666666666666 );
             expect( results[3]._debug.thisResult.length ).toBe( 3 );
             expect( results[4].key ).toBe( '2012-01-14' );
-            expect( results[4].rollingAverage ).toBe( 5.333333333333333 );
+            expect( results[4].rollingAverage ).toBeCloseTo( 5.333333333333333 );
             expect( results[5].key ).toBe( '2012-01-12' );
             expect( results[5].rollingAverage ).toBe( 2.5 );
             expect( results[6].key ).toBe( '2012-01-11' );
@@ -427,6 +530,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
         it('uses correct dates', function() {
 
             var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 3 );
+            rollingAverageFakeGroup._debug( true );
 
             var results = rollingAverageFakeGroup.top(Infinity);
 
@@ -462,6 +566,22 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             expect( results[6].key ).toBe( '2012-01-11' );
             expect( results[6]._debug.thisResult.length ).toBe( 1 );
             expect( results[6]._debug.thisResult[ 0 ].key ).toBe( '2012-01-11' );
+
+        });
+
+        it('only returns debug information when debug flag is engaged', function() {
+
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+
+            var results1 = percentageChangeFakeGroup.top(Infinity);
+
+            expect( results1[0]._debug ).not.toBeDefined();
+
+            percentageChangeFakeGroup._debug( true );
+
+            var results2 = percentageChangeFakeGroup.top(Infinity);
+
+            expect( results2[0]._debug ).toBeDefined();
 
         });
 

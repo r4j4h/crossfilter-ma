@@ -93,8 +93,6 @@ describe('accumulateGroupForPercentageChange', function() {
 
         mockOrderedUniqueData();
 
-        // TODO Test unordered
-        // TODO Test multiple dates that must be pregrouped
     });
 
     afterEach(function() {
@@ -110,54 +108,117 @@ describe('accumulateGroupForPercentageChange', function() {
     });
 
 
-    describe('requires a crossfilter group', function() {
+    describe('constructor', function() {
 
-        it('and refuses nothing', function() {
+        describe('requires a crossfilter group', function() {
 
-            var tryWithNothing = function() {
-                crossfilterMa.accumulateGroupForPercentageChange();
-            };
+            it('and refuses nothing', function() {
 
-            expect( tryWithNothing ).toThrowError('You must pass in a crossfilter group!');
+                var tryWithNothing = function() {
+                    crossfilterMa.accumulateGroupForPercentageChange();
+                };
+
+                expect( tryWithNothing ).toThrowError('You must pass in a crossfilter group!');
+            });
+
+            it('and refuses a number', function() {
+
+                var tryWithNumber = function() {
+                    crossfilterMa.accumulateGroupForPercentageChange(3);
+                };
+
+                expect( tryWithNumber ).toThrowError('You must pass in a crossfilter group!');
+            });
+
+            it('and refuses a string', function() {
+
+                var tryWithString = function() {
+                    crossfilterMa.accumulateGroupForPercentageChange('lorem');
+                };
+
+                expect( tryWithString ).toThrowError('You must pass in a crossfilter group!');
+            });
+
+            it('and refuses an object that does not look like a crossfilter group', function() {
+
+                var tryWithObject = function() {
+                    crossfilterMa.accumulateGroupForPercentageChange({ key: 'lorem', value: 'ipsum' });
+                };
+
+                expect( tryWithObject ).toThrowError('You must pass in a crossfilter group!');
+                expect( tryWithObject ).toThrowError();
+                expect( tryWithObject ).toThrow();
+            });
+
+            it('and allows an object that does look like a crossfilter group', function() {
+
+                var tryWithObjectThatMatches = function() {
+                    crossfilterMa.accumulateGroupForPercentageChange({ all: function() {} });
+                };
+
+                expect( tryWithObjectThatMatches ).not.toThrow();
+                expect( tryWithObjectThatMatches ).not.toThrowError();
+            });
+
         });
 
-        it('and refuses a number', function() {
+        it('allows configuring debug flag', function() {
 
-            var tryWithNumber = function() {
-                crossfilterMa.accumulateGroupForPercentageChange(3);
-            };
+            var firstRollingAverageFakeGroup;
 
-            expect( tryWithNumber ).toThrowError('You must pass in a crossfilter group!');
+            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( { all: function() {} }, undefined );
+
+            expect( firstRollingAverageFakeGroup._debug() ).toBeFalsy();
+
+            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( { all: function() {} }, false );
+
+            expect( firstRollingAverageFakeGroup._debug() ).toBeFalsy();
+
+            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( { all: function() {} }, true );
+
+            expect( firstRollingAverageFakeGroup._debug() ).toBeTruthy();
+
         });
 
-        it('and refuses a string', function() {
+    });
 
-            var tryWithString = function() {
-                crossfilterMa.accumulateGroupForPercentageChange('lorem');
-            };
 
-            expect( tryWithString ).toThrowError('You must pass in a crossfilter group!');
+
+
+    describe('_debug()', function() {
+
+        describe('when given no parameters', function() {
+
+            it('returns the current state of the debug flag', function() {
+
+                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+
+                expect( percentageChangeFakeGroup._debug() ).toBeFalsy();
+
+            });
+
         });
 
-        it('and refuses an object that does not look like a crossfilter group', function() {
+        describe('when given parameters', function() {
 
-            var tryWithObject = function() {
-                crossfilterMa.accumulateGroupForPercentageChange({ key: 'lorem', value: 'ipsum' });
-            };
+            it('takes boolean coerce-able parameters as the new state of the debug flag', function() {
 
-            expect( tryWithObject ).toThrowError('You must pass in a crossfilter group!');
-            expect( tryWithObject ).toThrowError();
-            expect( tryWithObject ).toThrow();
+                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+
+                percentageChangeFakeGroup._debug( true );
+
+                expect( percentageChangeFakeGroup._debug() ).toBeTruthy();
+
+            });
+
         });
 
-        it('and allows an object that does look like a crossfilter group', function() {
+        it('defaults to off', function() {
 
-            var tryWithObjectThatMatches = function() {
-                crossfilterMa.accumulateGroupForPercentageChange({ all: function() {} });
-            };
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
 
-            expect( tryWithObjectThatMatches ).not.toThrow();
-            expect( tryWithObjectThatMatches ).not.toThrowError();
+            expect( percentageChangeFakeGroup._debug() ).toBeFalsy();
+
         });
 
     });
@@ -173,11 +234,11 @@ describe('accumulateGroupForPercentageChange', function() {
 
             expect( results[0].percentageChange ).toBe( 0 );
             expect( results[1].percentageChange ).toBe( 50 );
-            expect( results[2].percentageChange ).toBe( 233.33333333333334 );
+            expect( results[2].percentageChange ).toBeCloseTo( 233.33333333333334 );
             expect( results[3].percentageChange ).toBe( -70 );
-            expect( results[4].percentageChange ).toBe( 233.33333333333334 );
+            expect( results[4].percentageChange ).toBeCloseTo( 233.33333333333334 );
             expect( results[5].percentageChange ).toBe( 20 );
-            expect( results[6].percentageChange ).toBe( -41.66666666666667 );
+            expect( results[6].percentageChange ).toBeCloseTo( -41.66666666666667 );
 
         });
 
@@ -213,6 +274,7 @@ describe('accumulateGroupForPercentageChange', function() {
         it('uses correct dates', function() {
 
             var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+            percentageChangeFakeGroup._debug( true );
 
             var results = percentageChangeFakeGroup.all();
 
@@ -244,15 +306,16 @@ describe('accumulateGroupForPercentageChange', function() {
             mockUnorderedUniqueData();
 
             var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+            percentageChangeFakeGroup._debug( true );
 
             var results = percentageChangeFakeGroup.all();
 
             expect( results[0].key ).toBe( '2012-01-11' );
             expect( results[0].percentageChange ).toBe( 0 );
             expect( results[1].key ).toBe( '2012-01-12' );
-            expect( results[1].percentageChange ).toBe( 50 );
+            expect( results[1].percentageChange ).toBeCloseTo( 50 );
             expect( results[2].key ).toBe( '2012-01-13' );
-            expect( results[2].percentageChange ).toBe( 233.33333333333334 );
+            expect( results[2].percentageChange ).toBeCloseTo( 233.33333333333334 );
 
             expect( results[0].key ).toBe( '2012-01-11' );
             expect( results[0]._debug.thisDayKey ).toBe( '2012-01-11' );
@@ -268,17 +331,18 @@ describe('accumulateGroupForPercentageChange', function() {
             mockUnorderedRedundantData();
 
             var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+            percentageChangeFakeGroup._debug( true );
 
             var results = percentageChangeFakeGroup.all();
 
             expect( results[0].key ).toBe( '2012-01-11' ); //5
             expect( results[0].percentageChange ).toBe( 0 );
             expect( results[1].key ).toBe( '2012-01-12' ); // 15
-            expect( results[1].percentageChange ).toBe( 200 );
+            expect( results[1].percentageChange ).toBeCloseTo( 200 );
             expect( results[2].key ).toBe( '2012-01-13' ); // 17
-            expect( results[2].percentageChange ).toBe( 13.333333333333334 );
+            expect( results[2].percentageChange ).toBeCloseTo( 13.333333333333334 );
             expect( results[3].key ).toBe( '2012-01-15' ); // 10
-            expect( results[3].percentageChange ).toBe( -41.17647058823529 );
+            expect( results[3].percentageChange ).toBeCloseTo( -41.17647058823529 );
 
             expect( results[0].key ).toBe( '2012-01-11' );
             expect( results[0]._debug.thisDayKey ).toBe( '2012-01-11' );
@@ -305,12 +369,12 @@ describe('accumulateGroupForPercentageChange', function() {
             var results = percentageChangeFakeGroup.all();
 
             expect( results[0].percentageChange ).toBe( 0 );
-            expect( results[1].percentageChange ).toBe( 50 );
-            expect( results[2].percentageChange ).toBe( 233.33333333333334 );
-            expect( results[3].percentageChange ).toBe( -70 );
-            expect( results[4].percentageChange ).toBe( 233.33333333333334 );
-            expect( results[5].percentageChange ).toBe( 20 );
-            expect( results[6].percentageChange ).toBe( -41.66666666666667 );
+            expect( results[1].percentageChange ).toBeCloseTo( 50 );
+            expect( results[2].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[3].percentageChange ).toBeCloseTo( -70 );
+            expect( results[4].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[5].percentageChange ).toBeCloseTo( 20 );
+            expect( results[6].percentageChange ).toBeCloseTo( -41.66666666666667 );
 
             dimensionVisitsForFiltering.filterRange( [ 3,11 ] );
 
@@ -318,11 +382,27 @@ describe('accumulateGroupForPercentageChange', function() {
 
             expect( results[0].percentageChange ).toBe( 0 );
             expect( results[1].percentageChange ).toBe( Infinity );
-            expect( results[2].percentageChange ).toBe( 233.33333333333334 );
-            expect( results[3].percentageChange ).toBe( -70 );
-            expect( results[4].percentageChange ).toBe( 233.33333333333334 );
-            expect( results[5].percentageChange ).toBe( -100 );
+            expect( results[2].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[3].percentageChange ).toBeCloseTo( -70 );
+            expect( results[4].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[5].percentageChange ).toBeCloseTo( -100 );
             expect( results[6].percentageChange ).toBe( Infinity );
+
+        });
+
+        it('only returns debug information when debug flag is engaged', function() {
+
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+
+            var results = percentageChangeFakeGroup.all();
+
+            expect( results[0]._debug ).not.toBeDefined();
+
+            percentageChangeFakeGroup._debug( true );
+
+            var results = percentageChangeFakeGroup.all();
+
+            expect( results[0]._debug ).toBeDefined();
 
         });
 
@@ -365,11 +445,11 @@ describe('accumulateGroupForPercentageChange', function() {
             var results = percentageChangeFakeGroup.top(Infinity);
 
             expect( results[0].percentageChange ).toBe( 20 );
-            expect( results[1].percentageChange ).toBe( 233.33333333333334 );
-            expect( results[2].percentageChange ).toBe( 233.33333333333334 );
-            expect( results[3].percentageChange ).toBe( -41.66666666666667 );
-            expect( results[4].percentageChange ).toBe( -70 );
-            expect( results[5].percentageChange ).toBe( 50 );
+            expect( results[1].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[2].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[3].percentageChange ).toBeCloseTo( -41.66666666666667 );
+            expect( results[4].percentageChange ).toBeCloseTo( -70 );
+            expect( results[5].percentageChange ).toBeCloseTo( 50 );
             expect( results[6].percentageChange ).toBe( 0 );
 
         });
@@ -406,6 +486,7 @@ describe('accumulateGroupForPercentageChange', function() {
         it('uses correct dates', function() {
 
             var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+            percentageChangeFakeGroup._debug( true );
 
             var results = percentageChangeFakeGroup.top(Infinity);
 
@@ -465,15 +546,16 @@ describe('accumulateGroupForPercentageChange', function() {
             mockUnorderedUniqueData();
 
             var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+            percentageChangeFakeGroup._debug( true );
 
             var results = percentageChangeFakeGroup.top(Infinity);
 
             expect( results[0].key ).toBe( '2012-01-16' );
             expect( results[0].percentageChange ).toBe( 20 );
             expect( results[1].key ).toBe( '2012-01-15' );
-            expect( results[1].percentageChange ).toBe( 233.33333333333334 );
+            expect( results[1].percentageChange ).toBeCloseTo( 233.33333333333334 );
             expect( results[2].key ).toBe( '2012-01-13' );
-            expect( results[2].percentageChange ).toBe( 233.33333333333334 );
+            expect( results[2].percentageChange ).toBeCloseTo( 233.33333333333334 );
 
             expect( results[6].key ).toBe( '2012-01-11' );
             expect( results[6]._debug.thisDayKey ).toBe( '2012-01-11' );
@@ -507,15 +589,16 @@ describe('accumulateGroupForPercentageChange', function() {
             mockUnorderedRedundantData();
 
             var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+            percentageChangeFakeGroup._debug( true );
 
             var results = percentageChangeFakeGroup.top(Infinity);
 
             expect( results[0].key ).toBe( '2012-01-13' ); //5
-            expect( results[0].percentageChange ).toBe( 13.333333333333334 );
+            expect( results[0].percentageChange ).toBeCloseTo( 13.333333333333334 );
             expect( results[1].key ).toBe( '2012-01-12' ); // 15
             expect( results[1].percentageChange ).toBe( 200 );
             expect( results[2].key ).toBe( '2012-01-15' ); // 17
-            expect( results[2].percentageChange ).toBe( -41.17647058823529 );
+            expect( results[2].percentageChange ).toBeCloseTo( -41.17647058823529 );
             expect( results[3].key ).toBe( '2012-01-11' ); // 10
             expect( results[3].percentageChange ).toBe( 0 );
 
@@ -544,9 +627,9 @@ describe('accumulateGroupForPercentageChange', function() {
             var results = percentageChangeFakeGroup.top(Infinity);
 
             expect( results[0].percentageChange ).toBe( 20 );
-            expect( results[1].percentageChange ).toBe( 233.33333333333334 );
-            expect( results[2].percentageChange ).toBe( 233.33333333333334 );
-            expect( results[3].percentageChange ).toBe( -41.66666666666667 );
+            expect( results[1].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[2].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[3].percentageChange ).toBeCloseTo( -41.66666666666667 );
             expect( results[4].percentageChange ).toBe( -70 );
             expect( results[5].percentageChange ).toBe( 50 );
             expect( results[6].percentageChange ).toBe( 0 );
@@ -555,13 +638,29 @@ describe('accumulateGroupForPercentageChange', function() {
 
             var results = percentageChangeFakeGroup.top(Infinity);
 
-            expect( results[0].percentageChange ).toBe( 233.33333333333334 );
-            expect( results[1].percentageChange ).toBe( 233.33333333333334 );
+            expect( results[0].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[1].percentageChange ).toBeCloseTo( 233.33333333333334 );
             expect( results[2].percentageChange ).toBe( Infinity );
             expect( results[3].percentageChange ).toBe( -70 );
             expect( results[4].percentageChange ).toBe( Infinity );
             expect( results[5].percentageChange ).toBe( -100 );
             expect( results[6].percentageChange ).toBe( 0 );
+
+        });
+
+        it('only returns debug information when debug flag is engaged', function() {
+
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+
+            var results1 = percentageChangeFakeGroup.top(Infinity);
+
+            expect( results1[0]._debug ).not.toBeDefined();
+
+            percentageChangeFakeGroup._debug( true );
+
+            var results2 = percentageChangeFakeGroup.top(Infinity);
+
+            expect( results2[0]._debug ).toBeDefined();
 
         });
 
