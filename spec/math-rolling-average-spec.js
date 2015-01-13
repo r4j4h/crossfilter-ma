@@ -298,18 +298,18 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             expect( results[0].key ).toBe( '2012-01-11' );
             expect( results[0].rollingAverage ).toBe( 0 );
-            expect( results[0]._debug.thisResult.length ).toBe( 1 );
+            expect( results[0]._debug.datumsUsed.length ).toBe( 1 );
             expect( results[1].key ).toBe( '2012-01-12' );
             expect( results[1].rollingAverage ).toBe( 2.5 );
-            expect( results[1]._debug.thisResult.length ).toBe( 2 );
-            expect( results[1]._debug.thisResult[0].key ).toBe( '2012-01-11' );
-            expect( results[1]._debug.thisResult[1].key ).toBe( '2012-01-12' );
+            expect( results[1]._debug.datumsUsed.length ).toBe( 2 );
+            expect( results[1]._debug.datumsUsed[0].key ).toBe( '2012-01-11' );
+            expect( results[1]._debug.datumsUsed[1].key ).toBe( '2012-01-12' );
             expect( results[2].key ).toBe( '2012-01-13' );
             expect( results[2].rollingAverage ).toBe( 6.5 );
-            expect( results[2]._debug.thisResult.length ).toBe( 2 );
+            expect( results[2]._debug.datumsUsed.length ).toBe( 2 );
             expect( results[3].key ).toBe( '2012-01-14' );
             expect( results[3].rollingAverage ).toBe( 6.5 );
-            expect( results[3]._debug.thisResult.length ).toBe( 2 );
+            expect( results[3]._debug.datumsUsed.length ).toBe( 2 );
             expect( results[4].key ).toBe( '2012-01-15' );
             expect( results[4].rollingAverage ).toBe( 6.5 );
             expect( results[5].key ).toBe( '2012-01-16' );
@@ -328,16 +328,16 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             expect( results[0].key ).toBe( '2012-01-11' );
             expect( results[0].rollingAverage ).toBe( 0 );
-            expect( results[0]._debug.thisResult.length ).toBe( 1 );
+            expect( results[0]._debug.datumsUsed.length ).toBe( 1 );
             expect( results[1].key ).toBe( '2012-01-12' );
             expect( results[1].rollingAverage ).toBe( 0 );
-            expect( results[1]._debug.thisResult.length ).toBe( 1 );
+            expect( results[1]._debug.datumsUsed.length ).toBe( 1 );
             expect( results[2].key ).toBe( '2012-01-13' );
             expect( results[2].rollingAverage ).toBe( 5 );
-            expect( results[2]._debug.thisResult.length ).toBe( 3 );
+            expect( results[2]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[3].key ).toBe( '2012-01-14' );
             expect( results[3].rollingAverage ).toBeCloseTo( 5.333333333333333 );
-            expect( results[3]._debug.thisResult.length ).toBe( 3 );
+            expect( results[3]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[4].key ).toBe( '2012-01-15' );
             expect( results[4].rollingAverage ).toBeCloseTo( 7.666666666666667 );
             expect( results[5].key ).toBe( '2012-01-16' );
@@ -383,18 +383,18 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             var results = rollingAverageFakeGroup.all();
 
-            expect( results[0]._debug.thisResult.length ).toBe( 1 );
-            expect( results[0]._debug.thisResult[ 0 ].key ).toBe( results[ 0 ].key );
-            expect( results[1]._debug.thisResult.length ).toBe( 1 );
-            expect( results[1]._debug.thisResult[ 0 ].key ).toBe( results[ 1 ].key );
-            expect( results[2]._debug.thisResult.length ).toBe( 3 );
+            expect( results[0]._debug.datumsUsed.length ).toBe( 1 );
+            expect( results[0]._debug.datumsUsed[ 0 ].key ).toBe( results[ 0 ].key );
+            expect( results[1]._debug.datumsUsed.length ).toBe( 1 );
+            expect( results[1]._debug.datumsUsed[ 0 ].key ).toBe( results[ 1 ].key );
+            expect( results[2]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[2].key ).toBe( '2012-01-13' );
-            expect( results[2]._debug.thisResult[ 0 ].key ).toBe( results[ 0 ].key );
-            expect( results[2]._debug.thisResult[ 0 ].key ).toBe( '2012-01-11' );
-            expect( results[2]._debug.thisResult[ 1 ].key ).toBe( results[ 1 ].key );
-            expect( results[2]._debug.thisResult[ 1 ].key ).toBe( '2012-01-12' );
-            expect( results[2]._debug.thisResult[ 2 ].key ).toBe( results[ 2 ].key );
-            expect( results[2]._debug.thisResult[ 2 ].key ).toBe( '2012-01-13' );
+            expect( results[2]._debug.datumsUsed[ 0 ].key ).toBe( results[ 0 ].key );
+            expect( results[2]._debug.datumsUsed[ 0 ].key ).toBe( '2012-01-11' );
+            expect( results[2]._debug.datumsUsed[ 1 ].key ).toBe( results[ 1 ].key );
+            expect( results[2]._debug.datumsUsed[ 1 ].key ).toBe( '2012-01-12' );
+            expect( results[2]._debug.datumsUsed[ 2 ].key ).toBe( results[ 2 ].key );
+            expect( results[2]._debug.datumsUsed[ 2 ].key ).toBe( '2012-01-13' );
 
         });
 
@@ -408,16 +408,16 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             expect( results[0].key ).toBe( '2012-01-11' );
             expect( results[0].rollingAverage ).toBe( 0 );
-            expect( results[0]._debug.thisResult.length ).toBe( 1 );
+            expect( results[0]._debug.datumsUsed.length ).toBe( 1 );
             expect( results[1].key ).toBe( '2012-01-12' );
             expect( results[1].rollingAverage ).toBe( 0 );
-            expect( results[1]._debug.thisResult.length ).toBe( 1 );
+            expect( results[1]._debug.datumsUsed.length ).toBe( 1 );
             expect( results[2].key ).toBe( '2012-01-13' );
             expect( results[2].rollingAverage ).toBe( 5 );
-            expect( results[2]._debug.thisResult.length ).toBe( 3 );
+            expect( results[2]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[3].key ).toBe( '2012-01-14' );
             expect( results[3].rollingAverage ).toBeCloseTo( 5.333333333333333 );
-            expect( results[3]._debug.thisResult.length ).toBe( 3 );
+            expect( results[3]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[4].key ).toBe( '2012-01-15' );
             expect( results[4].rollingAverage ).toBeCloseTo( 7.666666666666667 );
             expect( results[5].key ).toBe( '2012-01-16' );
@@ -431,16 +431,16 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             expect( results[0].key ).toBe( '2012-01-11' );
             expect( results[0].rollingAverage ).toBe( 0 );
-            expect( results[0]._debug.thisResult.length ).toBe( 1 );
+            expect( results[0]._debug.datumsUsed.length ).toBe( 1 );
             expect( results[1].key ).toBe( '2012-01-12' );
             expect( results[1].rollingAverage ).toBe( 0 );
-            expect( results[1]._debug.thisResult.length ).toBe( 1 );
+            expect( results[1]._debug.datumsUsed.length ).toBe( 1 );
             expect( results[2].key ).toBe( '2012-01-13' );
             expect( results[2].rollingAverage ).toBeCloseTo( 4.333333333333333 );
-            expect( results[2]._debug.thisResult.length ).toBe( 3 );
+            expect( results[2]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[3].key ).toBe( '2012-01-14' );
             expect( results[3].rollingAverage ).toBeCloseTo( 5.333333333333333 );
-            expect( results[3]._debug.thisResult.length ).toBe( 3 );
+            expect( results[3]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[4].key ).toBe( '2012-01-15' );
             expect( results[4].rollingAverage ).toBeCloseTo( 7.666666666666667 );
             expect( results[5].key ).toBe( '2012-01-16' );
@@ -476,16 +476,16 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             expect( results[0].key ).toBe( '2012-01-11' );
             expect( results[0].rollingAverage ).toBe( 0 );
-            expect( results[0]._debug.thisResult.length ).toBe( 1 );
+            expect( results[0]._debug.datumsUsed.length ).toBe( 1 );
             expect( results[1].key ).toBe( '2012-01-12' );
             expect( results[1].rollingAverage ).toBe( 0 );
-            expect( results[1]._debug.thisResult.length ).toBe( 1 );
+            expect( results[1]._debug.datumsUsed.length ).toBe( 1 );
             expect( results[2].key ).toBe( '2012-01-13' );
             expect( results[2].rollingAverage ).toBe( 5 );
-            expect( results[2]._debug.thisResult.length ).toBe( 3 );
+            expect( results[2]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[3].key ).toBe( '2012-01-14' );
             expect( results[3].rollingAverage ).toBeCloseTo( 5.333333333333333 );
-            expect( results[3]._debug.thisResult.length ).toBe( 3 );
+            expect( results[3]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[4].key ).toBe( '2012-01-15' );
             expect( results[4].rollingAverage ).toBeCloseTo( 7.666666666666667 );
             expect( results[5].key ).toBe( '2012-01-16' );
@@ -502,16 +502,16 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             expect( results[0].key ).toBe( '2012-01-11' );
             expect( results[0].rollingAverage ).toBe( 2 );
-            expect( results[0]._debug.thisResult.length ).toBe( 1 );
+            expect( results[0]._debug.datumsUsed.length ).toBe( 1 );
             expect( results[1].key ).toBe( '2012-01-12' );
             expect( results[1].rollingAverage ).toBe( 2.5 );
-            expect( results[1]._debug.thisResult.length ).toBe( 2 );
+            expect( results[1]._debug.datumsUsed.length ).toBe( 2 );
             expect( results[2].key ).toBe( '2012-01-13' );
             expect( results[2].rollingAverage ).toBe( 5 );
-            expect( results[2]._debug.thisResult.length ).toBe( 3 );
+            expect( results[2]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[3].key ).toBe( '2012-01-14' );
             expect( results[3].rollingAverage ).toBeCloseTo( 5.333333333333333 );
-            expect( results[3]._debug.thisResult.length ).toBe( 3 );
+            expect( results[3]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[4].key ).toBe( '2012-01-15' );
             expect( results[4].rollingAverage ).toBeCloseTo( 7.666666666666667 );
             expect( results[5].key ).toBe( '2012-01-16' );
@@ -534,23 +534,23 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             expect( results[0].key ).toBe( '2012-01-16' );
             expect( results[0].rollingAverage ).toBe( 11 );
-            expect( results[0]._debug.thisResult.length ).toBe( 2 );
+            expect( results[0]._debug.datumsUsed.length ).toBe( 2 );
             expect( results[1].key ).toBe( '2012-01-15' );
             expect( results[1].rollingAverage ).toBe( 6.5 );
-            expect( results[1]._debug.thisResult.length ).toBe( 2 );
+            expect( results[1]._debug.datumsUsed.length ).toBe( 2 );
             expect( results[2].key ).toBe( '2012-01-13' );
             expect( results[2].rollingAverage ).toBe( 6.5 );
-            expect( results[2]._debug.thisResult.length ).toBe( 2 );
+            expect( results[2]._debug.datumsUsed.length ).toBe( 2 );
             expect( results[3].key ).toBe( '2012-01-17' );
             expect( results[3].rollingAverage ).toBe( 9.5 );
-            expect( results[3]._debug.thisResult.length ).toBe( 2 );
+            expect( results[3]._debug.datumsUsed.length ).toBe( 2 );
             expect( results[4].key ).toBe( '2012-01-14' );
             expect( results[4].rollingAverage ).toBe( 6.5 );
             expect( results[5].key ).toBe( '2012-01-12' );
             expect( results[5].rollingAverage ).toBe( 2.5 );
             expect( results[6].key ).toBe( '2012-01-11' );
             expect( results[6].rollingAverage ).toBe( 0 );
-            expect( results[6]._debug.thisResult.length ).toBe( 1 );
+            expect( results[6]._debug.datumsUsed.length ).toBe( 1 );
 
         });
 
@@ -563,23 +563,23 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             expect( results[0].key ).toBe( '2012-01-16' );
             expect( results[0].rollingAverage ).toBeCloseTo( 8.333333333333334 );
-            expect( results[0]._debug.thisResult.length ).toBe( 3 );
+            expect( results[0]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[1].key ).toBe( '2012-01-15' );
             expect( results[1].rollingAverage ).toBeCloseTo( 7.666666666666667 );
-            expect( results[1]._debug.thisResult.length ).toBe( 3 );
+            expect( results[1]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[2].key ).toBe( '2012-01-13' );
             expect( results[2].rollingAverage ).toBe( 5 );
-            expect( results[2]._debug.thisResult.length ).toBe( 3 );
+            expect( results[2]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[3].key ).toBe( '2012-01-17' );
             expect( results[3].rollingAverage ).toBeCloseTo( 9.666666666666666 );
-            expect( results[3]._debug.thisResult.length ).toBe( 3 );
+            expect( results[3]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[4].key ).toBe( '2012-01-14' );
             expect( results[4].rollingAverage ).toBeCloseTo( 5.333333333333333 );
             expect( results[5].key ).toBe( '2012-01-12' );
             expect( results[5].rollingAverage ).toBe( 0 );
             expect( results[6].key ).toBe( '2012-01-11' );
             expect( results[6].rollingAverage ).toBe( 0 );
-            expect( results[6]._debug.thisResult.length ).toBe( 1 );
+            expect( results[6]._debug.datumsUsed.length ).toBe( 1 );
 
         });
 
@@ -645,36 +645,36 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             var results = rollingAverageFakeGroup.top(Infinity);
 
             expect( results[0].key ).toBe( '2012-01-16' );
-            expect( results[0]._debug.thisResult.length ).toBe( 3 );
-            expect( results[0]._debug.thisResult[ 0 ].key ).toBe( '2012-01-14' );
-            expect( results[0]._debug.thisResult[ 1 ].key ).toBe( '2012-01-15' );
-            expect( results[0]._debug.thisResult[ 2 ].key ).toBe( '2012-01-16' );
+            expect( results[0]._debug.datumsUsed.length ).toBe( 3 );
+            expect( results[0]._debug.datumsUsed[ 0 ].key ).toBe( '2012-01-14' );
+            expect( results[0]._debug.datumsUsed[ 1 ].key ).toBe( '2012-01-15' );
+            expect( results[0]._debug.datumsUsed[ 2 ].key ).toBe( '2012-01-16' );
 
             expect( results[1].key ).toBe( '2012-01-15' );
-            expect( results[1]._debug.thisResult.length ).toBe( 3 );
-            expect( results[1]._debug.thisResult[ 0 ].key ).toBe( '2012-01-13' );
-            expect( results[1]._debug.thisResult[ 1 ].key ).toBe( '2012-01-14' );
-            expect( results[1]._debug.thisResult[ 2 ].key ).toBe( '2012-01-15' );
+            expect( results[1]._debug.datumsUsed.length ).toBe( 3 );
+            expect( results[1]._debug.datumsUsed[ 0 ].key ).toBe( '2012-01-13' );
+            expect( results[1]._debug.datumsUsed[ 1 ].key ).toBe( '2012-01-14' );
+            expect( results[1]._debug.datumsUsed[ 2 ].key ).toBe( '2012-01-15' );
 
             expect( results[2].key ).toBe( '2012-01-13' );
-            expect( results[2]._debug.thisResult.length ).toBe( 3 );
-            expect( results[2]._debug.thisResult[ 0 ].key ).toBe( '2012-01-11' );
-            expect( results[2]._debug.thisResult[ 1 ].key ).toBe( '2012-01-12' );
-            expect( results[2]._debug.thisResult[ 2 ].key ).toBe( '2012-01-13' );
+            expect( results[2]._debug.datumsUsed.length ).toBe( 3 );
+            expect( results[2]._debug.datumsUsed[ 0 ].key ).toBe( '2012-01-11' );
+            expect( results[2]._debug.datumsUsed[ 1 ].key ).toBe( '2012-01-12' );
+            expect( results[2]._debug.datumsUsed[ 2 ].key ).toBe( '2012-01-13' );
 
             expect( results[3].key ).toBe( '2012-01-17' );
-            expect( results[3]._debug.thisResult.length ).toBe( 3 );
+            expect( results[3]._debug.datumsUsed.length ).toBe( 3 );
 
             expect( results[4].key ).toBe( '2012-01-14' );
-            expect( results[4]._debug.thisResult.length ).toBe( 3 );
+            expect( results[4]._debug.datumsUsed.length ).toBe( 3 );
 
             expect( results[5].key ).toBe( '2012-01-12' );
-            expect( results[5]._debug.thisResult.length ).toBe( 1 );
-            expect( results[5]._debug.thisResult[ 0 ].key ).toBe( '2012-01-12' );
+            expect( results[5]._debug.datumsUsed.length ).toBe( 1 );
+            expect( results[5]._debug.datumsUsed[ 0 ].key ).toBe( '2012-01-12' );
 
             expect( results[6].key ).toBe( '2012-01-11' );
-            expect( results[6]._debug.thisResult.length ).toBe( 1 );
-            expect( results[6]._debug.thisResult[ 0 ].key ).toBe( '2012-01-11' );
+            expect( results[6]._debug.datumsUsed.length ).toBe( 1 );
+            expect( results[6]._debug.datumsUsed[ 0 ].key ).toBe( '2012-01-11' );
 
         });
 
@@ -703,20 +703,20 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             var results = rollingAverageFakeGroup.top(Infinity);
 
             expect( results[0].key ).toBe( '2012-01-16' );
-            expect( results[0]._debug.thisResult.length ).toBe( 3 );
-            expect( results[1]._debug.thisResult.length ).toBe( 3 );
+            expect( results[0]._debug.datumsUsed.length ).toBe( 3 );
+            expect( results[1]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[2].key ).toBe( '2012-01-13' );
-            expect( results[2]._debug.thisResult.length ).toBe( 3 );
+            expect( results[2]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[3].key ).toBe( '2012-01-17' );
             expect( results[3].rollingAverage ).toBeCloseTo( 9.666666666666666 );
-            expect( results[3]._debug.thisResult.length ).toBe( 3 );
+            expect( results[3]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[4].key ).toBe( '2012-01-14' );
             expect( results[4].rollingAverage ).toBeCloseTo( 5.333333333333333 );
             expect( results[5].key ).toBe( '2012-01-12' );
             expect( results[5].rollingAverage ).toBe( 0 );
             expect( results[6].key ).toBe( '2012-01-11' );
             expect( results[6].rollingAverage ).toBe( 0 );
-            expect( results[6]._debug.thisResult.length ).toBe( 1 );
+            expect( results[6]._debug.datumsUsed.length ).toBe( 1 );
 
             var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate, 3 );
             rollingAverageFakeGroup._debug( true );
@@ -725,20 +725,20 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             var results = rollingAverageFakeGroup.top(Infinity);
 
             expect( results[0].key ).toBe( '2012-01-16' );
-            expect( results[0]._debug.thisResult.length ).toBe( 3 );
-            expect( results[1]._debug.thisResult.length ).toBe( 3 );
+            expect( results[0]._debug.datumsUsed.length ).toBe( 3 );
+            expect( results[1]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[2].key ).toBe( '2012-01-13' );
-            expect( results[2]._debug.thisResult.length ).toBe( 3 );
+            expect( results[2]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[3].key ).toBe( '2012-01-17' );
             expect( results[3].rollingAverage ).toBeCloseTo( 9.666666666666666 );
-            expect( results[3]._debug.thisResult.length ).toBe( 3 );
+            expect( results[3]._debug.datumsUsed.length ).toBe( 3 );
             expect( results[4].key ).toBe( '2012-01-14' );
             expect( results[4].rollingAverage ).toBeCloseTo( 5.333333333333333 );
             expect( results[5].key ).toBe( '2012-01-12' );
             expect( results[5].rollingAverage ).toBe( 2.5 );
             expect( results[6].key ).toBe( '2012-01-11' );
             expect( results[6].rollingAverage ).toBe( 2 );
-            expect( results[6]._debug.thisResult.length ).toBe( 1 );
+            expect( results[6]._debug.datumsUsed.length ).toBe( 1 );
 
         });
 

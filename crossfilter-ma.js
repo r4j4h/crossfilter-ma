@@ -122,7 +122,7 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 var thisCumulate = 0;
                 var thisAverage = 0;
 
-                var thisResult = [];
+                var datumsUsed = [];
 
                 while ( --days > 0 ) {
                     var targetDay =  arr[i - days];
@@ -136,7 +136,7 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                         numsToAverage++;
                         thisCumulate += targetDay.value;
                         if ( debugMode ) {
-                            thisResult.push( { 'key': targetDay.key, 'value': targetDay.value } );
+                            datumsUsed.push( { 'key': targetDay.key, 'value': targetDay.value } );
                         }
 
                     }
@@ -148,7 +148,7 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
 
                 if ( debugMode ) {
                     cumulate += d.value;
-                    thisResult.push( { 'key': d.key, 'value': d.value } );
+                    datumsUsed.push( { 'key': d.key, 'value': d.value } );
                 }
 
                 thisAverage = thisCumulate / numsToAverage;
@@ -166,7 +166,7 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 if ( debugMode ) {
                     returnObj._debug = {
                         'cumulate': cumulate,
-                        thisResult: thisResult
+                        datumsUsed: datumsUsed
                     };
                 }
 
@@ -231,7 +231,7 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 var thisCumulate = 0;
                 var thisAverage = 0;
 
-                var thisResult = [];
+                var datumsUsed = [];
 
                 while ( --days > 0 ) {
                     //var targetDay =  arr[i - thisDay];
@@ -249,7 +249,7 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                         thisCumulate += targetDayValue;
 
                         if ( debugMode ) {
-                            thisResult.push( { 'key': targetDayId, 'value': targetDayValue } );
+                            datumsUsed.push( { 'key': targetDayId, 'value': targetDayValue } );
                         }
                     }
                 }
@@ -260,7 +260,7 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
 
                 if ( debugMode ) {
                     cumulate += d.value;
-                    thisResult.push( { 'key': d.key, 'value': d.value } );
+                    datumsUsed.push( { 'key': d.key, 'value': d.value } );
                 }
 
                 thisAverage = thisCumulate / numsToAverage;
@@ -278,7 +278,7 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 if ( debugMode ) {
                     returnObj._debug = {
                         'cumulate': cumulate,
-                        thisResult: thisResult
+                        datumsUsed: datumsUsed
                     };
                 }
 
