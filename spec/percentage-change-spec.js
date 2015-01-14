@@ -101,6 +101,7 @@ describe('accumulateGroupForPercentageChange', function() {
             { date: "2012-01-12", visits: 3,  place: "B", territory: "A" },
             { date: "2012-01-13", visits: 10, place: "A", territory: "B" },
             { date: "2012-01-11", visits: 3,  place: "C", territory: "B" },
+            { date: "2012-01-11", visits: 1,  place: "A", territory: "A" },
             { date: "2012-01-15", visits: 10, place: "A", territory: "A" },
             { date: "2012-01-12", visits: 12, place: "B", territory: "A" },
             { date: "2012-01-13", visits: 7,  place: "A", territory: "B" }
@@ -592,7 +593,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
         it('uses custom key accessor', function() {
 
-            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate, 3 );
+            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
 
             var origKey = rollingAverageFakeGroup.keyAccessor();
             var mySpy = jasmine.createSpy(origKey ).and.callThrough();
@@ -606,7 +607,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
         it('uses custom value accessor', function() {
 
-            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate, 3 );
+            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
 
             var origKey = rollingAverageFakeGroup.valueAccessor();
             var mySpy = jasmine.createSpy(origKey ).and.callThrough();
@@ -618,28 +619,109 @@ describe('accumulateGroupForPercentageChange', function() {
 
         });
 
+        describe('works with multiple dimensions', function() {
 
-
-        describe('works with custom groupings', function() {
-
-            var percentageChangeGroup;
+            var percentageChangeGroupVisitsByDate;
 
             beforeEach(function() {
                 mockCustomKeyValueData();
-                percentageChangeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByPlaceAndTerritoryByDate );
-                percentageChangeGroup._debug(true);
+                // Using normal grouping
+                percentageChangeGroupVisitsByDate = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+                percentageChangeGroupVisitsByDate._debug(true);
 
             });
 
             afterEach(function() {
-                percentageChangeGroup = null;
+                percentageChangeGroupVisitsByDate = null;
+            });
+
+            it('can get percent change of place A using reduceSum group by filtering on a place dimension', function() {
+
+                var dimensionPlaces = crossfilterInstance.dimension(function (d) {
+                    return d.place
+                });
+
+                dimensionPlaces.filter("A");
+
+                var resultsAll = percentageChangeGroupVisitsByDate.all();
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 0 ]._debug.prevDayKey ).toBe( "None" );
+                expect( resultsAll[ 0 ]._debug.thisDayKey ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 1 ]._debug.prevDayKey ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ]._debug.thisDayKey ).toBe( "2012-01-12" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
+
+                expect( resultsAll[ 0 ].value ).toBe( 3 );
+                expect( resultsAll[ 1 ].value ).toBe( 0 );
+                expect( resultsAll[ 2 ].value ).toBe( 17 );
+                expect( resultsAll[ 3 ].value ).toBe( 10 );
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 3 ].percentageChange ).toBeCloseTo( -41.18 );
+
+            });
+
+            it('can get percent change of territory A using reduceSum group by filtering on a place dimension', function() {
+
+                var dimensionTerritories = crossfilterInstance.dimension(function (d) {
+                    return d.territory;
+                });
+
+                dimensionTerritories.filter("A");
+
+                var resultsAll = percentageChangeGroupVisitsByDate.all();
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 0 ]._debug.prevDayKey ).toBe( "None" );
+                expect( resultsAll[ 0 ]._debug.thisDayKey ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 1 ]._debug.prevDayKey ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ]._debug.thisDayKey ).toBe( "2012-01-12" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
+
+                expect( resultsAll[ 0 ].value ).toBe( 3 );
+                expect( resultsAll[ 1 ].value ).toBe( 15 );
+                expect( resultsAll[ 2 ].value ).toBe( 0 );
+                expect( resultsAll[ 3 ].value ).toBe( 10 );
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( 400 );
+                expect( resultsAll[ 2 ].percentageChange ).toBe( -100 );
+                expect( resultsAll[ 3 ].percentageChange ).toBe( Infinity );
+
+            });
+
+
+        });
+
+
+        describe('works with custom groupings', function() {
+
+            var percentageChangeGroupVisitsByPlaceAndTerritoryByDate;
+
+            beforeEach(function() {
+                mockCustomKeyValueData();
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByPlaceAndTerritoryByDate );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate._debug(true);
+
+            });
+
+            afterEach(function() {
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate = null;
             });
 
             it('maintains original custom value', function() {
 
                 var resultsAll;
                 var all = groupVisitsByPlaceAndTerritoryByDate.all();
-                resultsAll = percentageChangeGroup.all();
+                resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
                 expect( all[ 0 ].key ).toBe( resultsAll[ 0 ].key );
                 expect( all[ 0 ].value ).toBe( resultsAll[ 0 ].value );
@@ -673,7 +755,7 @@ describe('accumulateGroupForPercentageChange', function() {
             it('adds percentage changed', function() {
 
                 var all = groupVisitsByPlaceAndTerritoryByDate.all();
-                var resultsAll = percentageChangeGroup.all();
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
                 expect( all[ 0 ].percentageChange ).not.toBeDefined();
                 expect( resultsAll[ 0 ].percentageChange ).toBeDefined();
@@ -681,7 +763,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
             it('allows getting the % change of the total visits', function() {
 
-                var resultsAll = percentageChangeGroup.all();
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
                 expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
                 expect( resultsAll[ 0 ].percentageChange ).not.toBe( 1 );
@@ -692,12 +774,12 @@ describe('accumulateGroupForPercentageChange', function() {
                 expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 3 ].percentageChange ).not.toBe( 41.18 );
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.totalVisits; } );
 
-                resultsAll = percentageChangeGroup.all();
+                resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
                 expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
-                expect( resultsAll[ 1 ].percentageChange ).toBe( 200 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( 150 );
                 expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( 13.33 );
                 expect( resultsAll[ 3 ].percentageChange ).toBeCloseTo( -41.18 );
 
@@ -705,9 +787,24 @@ describe('accumulateGroupForPercentageChange', function() {
 
             it('allows getting the % change of Place A', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.A.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
+                groupVisitsByPlaceAndTerritoryByDate.order( function(d) { return d.value.places.A.visits; } );
 
-                var resultsAll = percentageChangeGroup.all();
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 0 ]._debug.prevDayKey ).toBe( "None" );
+                expect( resultsAll[ 0 ]._debug.thisDayKey ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 1 ]._debug.prevDayKey ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ]._debug.thisDayKey ).toBe( "2012-01-12" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
+
+                expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 3 );
+                expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 0 );
+                expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 17 );
+                expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 10 );
 
                 expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
                 expect( resultsAll[ 1 ].percentageChange ).toBe( -100 );
@@ -718,9 +815,9 @@ describe('accumulateGroupForPercentageChange', function() {
 
             it('allows getting the % change of Place B', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.B.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.B.visits; } );
 
-                var resultsAll = percentageChangeGroup.all();
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
                 expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
                 expect( resultsAll[ 1 ].percentageChange ).toBe( Infinity );
@@ -731,9 +828,9 @@ describe('accumulateGroupForPercentageChange', function() {
 
             xit('allows getting the % change of each place', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.A.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
 
-                var resultsAll = percentageChangeGroup.all();
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
                 expect( resultsAll[ 0 ].percentageChange ).not.toBeDefined();
                 expect( resultsAll[ 1 ].percentageChange ).not.toBeDefined();
@@ -754,12 +851,27 @@ describe('accumulateGroupForPercentageChange', function() {
 
             it('allows getting the % change of territory A', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.territories.A.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.territories.A.visits; } );
 
-                var resultsAll = percentageChangeGroup.all();
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 0 ]._debug.prevDayKey ).toBe( "None" );
+                expect( resultsAll[ 0 ]._debug.thisDayKey ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 1 ]._debug.prevDayKey ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ]._debug.thisDayKey ).toBe( "2012-01-12" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
+
+                expect( resultsAll[ 0 ].value.territories.A.visits ).toBe( 3 );
+                expect( resultsAll[ 1 ].value.territories.A.visits ).toBe( 15 );
+                expect( resultsAll[ 2 ].value.territories.A.visits ).toBe( 0 );
+                expect( resultsAll[ 3 ].value.territories.A.visits ).toBe( 10 );
 
                 expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
-                expect( resultsAll[ 1 ].percentageChange ).toBe( 650 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( 400 );
                 expect( resultsAll[ 2 ].percentageChange ).toBe( -100 );
                 expect( resultsAll[ 3 ].percentageChange ).toBe( Infinity );
 
@@ -767,9 +879,9 @@ describe('accumulateGroupForPercentageChange', function() {
 
             it('allows getting the % change of territory B', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.territories.B.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.territories.B.visits; } );
 
-                var resultsAll = percentageChangeGroup.all();
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
                 expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
                 expect( resultsAll[ 1 ].percentageChange ).toBe( -100 );
@@ -780,7 +892,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
             xit('allows getting the % change of each territory', function() {
 
-                var resultsAll = percentageChangeGroup.all();
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
                 expect( resultsAll[ 0 ].percentageChange ).not.toBeDefined();
                 expect( resultsAll[ 1 ].percentageChange ).not.toBeDefined();
@@ -801,9 +913,9 @@ describe('accumulateGroupForPercentageChange', function() {
 
             xit('allows getting the % change of each place and territory and total', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.totalVisits; } );
 
-                var resultsAll = percentageChangeGroup.all();
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
                 expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
                 expect( resultsAll[ 1 ].percentageChange ).toBe( 200 );
@@ -1095,7 +1207,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
         it('uses custom key accessor', function() {
 
-            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate, 3 );
+            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
 
             var origKey = rollingAverageFakeGroup.keyAccessor();
             var mySpy = jasmine.createSpy(origKey ).and.callThrough();
@@ -1109,7 +1221,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
         it('uses custom value accessor', function() {
 
-            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate, 3 );
+            var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
 
             var origKey = rollingAverageFakeGroup.valueAccessor();
             var mySpy = jasmine.createSpy(origKey ).and.callThrough();
@@ -1121,27 +1233,101 @@ describe('accumulateGroupForPercentageChange', function() {
 
         });
 
+        describe('works with multiple dimensions', function() {
 
-        describe('works with custom groupings', function() {
-
-            var percentageChangeGroup;
+            var percentageChangeGroupVisitsByDate;
 
             beforeEach(function() {
                 mockCustomKeyValueData();
-                percentageChangeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByPlaceAndTerritoryByDate );
-                percentageChangeGroup._debug(true);
+                // Using normal grouping
+                percentageChangeGroupVisitsByDate = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+                percentageChangeGroupVisitsByDate._debug(true);
 
             });
 
             afterEach(function() {
-                percentageChangeGroup = null;
+                percentageChangeGroupVisitsByDate = null;
+            });
+
+            it('can get percent change of place A using reduceSum group by filtering on a place dimension', function() {
+
+                var dimensionPlaces = crossfilterInstance.dimension(function (d) {
+                    return d.place
+                });
+
+                dimensionPlaces.filter("A");
+
+                var resultsAll = percentageChangeGroupVisitsByDate.top( Infinity );
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-15" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-12" );
+
+                expect( resultsAll[ 0 ].value ).toBe( 17 );
+                expect( resultsAll[ 1 ].value ).toBe( 10 );
+                expect( resultsAll[ 2 ].value ).toBe( 3 );
+                expect( resultsAll[ 3 ].value ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 1 ].percentageChange ).toBeCloseTo( -41.18 );
+                expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
+
+            });
+
+            it('can get percent change of territory A using reduceSum group by filtering on a place dimension', function() {
+
+                var dimensionTerritories = crossfilterInstance.dimension(function (d) {
+                    return d.territory;
+                });
+
+                dimensionTerritories.filter("A");
+
+                var resultsAll = percentageChangeGroupVisitsByDate.top( Infinity );
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 0 ]._debug.prevDayKey ).toBe( "2012-01-11" );
+                expect( resultsAll[ 0 ]._debug.thisDayKey ).toBe( "2012-01-12" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-15" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-13" );
+
+                expect( resultsAll[ 0 ].value ).toBe( 15 );
+                expect( resultsAll[ 1 ].value ).toBe( 10 );
+                expect( resultsAll[ 2 ].value ).toBe( 3 );
+                expect( resultsAll[ 3 ].value ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( 400 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
+
+            });
+
+
+        });
+
+        describe('works with custom groupings', function() {
+
+            var percentageChangeGroupVisitsByPlaceAndTerritoryByDate;
+
+            beforeEach(function() {
+                mockCustomKeyValueData();
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByPlaceAndTerritoryByDate );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate._debug(true);
+
+            });
+
+            afterEach(function() {
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate = null;
             });
 
             it('maintains original custom value', function() {
 
                 var resultsAll;
                 var all = groupVisitsByPlaceAndTerritoryByDate.top(Infinity);
-                resultsAll = percentageChangeGroup.top(Infinity);
+                resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
                 expect( all[ 0 ].key ).toBe( resultsAll[ 0 ].key );
                 expect( all[ 0 ].value ).toBe( resultsAll[ 0 ].value );
@@ -1175,15 +1361,15 @@ describe('accumulateGroupForPercentageChange', function() {
             it('adds percentage changed', function() {
 
                 var all = groupVisitsByPlaceAndTerritoryByDate.top(Infinity);
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
                 expect( all[ 0 ].percentageChange ).not.toBeDefined();
                 expect( resultsAll[ 0 ].percentageChange ).toBeDefined();
             });
 
-            it('allows getting the % change of the total visits', function() {
+            it('allows getting the % change of the total visits with a custom valueAccessor', function() {
 
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
                 expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 0 ].percentageChange ).not.toBe( 1 );
@@ -1194,35 +1380,47 @@ describe('accumulateGroupForPercentageChange', function() {
                 expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
                 expect( resultsAll[ 3 ].percentageChange ).not.toBe( 41.18 );
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.totalVisits; } );
 
-                resultsAll = percentageChangeGroup.top(Infinity);
+                resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( 200 );
+                expect( resultsAll[ 0 ].percentageChange ).toBe( 150 );
                 expect( resultsAll[ 1 ].percentageChange ).toBeCloseTo( 13.33 );
                 expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( -41.18 );
                 expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
 
             });
 
-            it('allows getting the % change of Place A', function() {
+            it('allows getting the % change of Place A with a custom valueAccessor', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.A.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
+                groupVisitsByPlaceAndTerritoryByDate.order( function(d) { return d.places.A.visits; } );
 
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( -100 );
-                expect( resultsAll[ 1 ].percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( -41.18 );
-                expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-15" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-12" );
+
+                expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 17 );
+                expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 10 );
+                expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 3 );
+                expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 1 ].percentageChange ).toBeCloseTo( -41.18 );
+                expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
 
             });
 
-            it('allows getting the % change of Place B', function() {
+            it('allows getting the % change of Place B with a custom valueAccessor', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.B.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.B.visits; } );
+                groupVisitsByPlaceAndTerritoryByDate.order( function(d) { return d.places.B.visits; } );
 
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
                 expect( resultsAll[ 0 ].percentageChange ).toBe( Infinity );
                 expect( resultsAll[ 1 ].percentageChange ).toBe( -100 );
@@ -1233,79 +1431,93 @@ describe('accumulateGroupForPercentageChange', function() {
 
             xit('allows getting the % change of each place', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.A.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
 
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
                 expect( resultsAll[ 0 ].percentageChange ).not.toBeDefined();
                 expect( resultsAll[ 1 ].percentageChange ).not.toBeDefined();
                 expect( resultsAll[ 2 ].percentageChange ).not.toBeDefined();
                 expect( resultsAll[ 3 ].percentageChange ).not.toBeDefined();
 
-                expect( resultsAll[ 0 ].value.places.A.percentageChange ).toBe( 0 );
-                expect( resultsAll[ 1 ].value.places.A.percentageChange ).toBe( -100 );
-                expect( resultsAll[ 2 ].value.places.A.percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 3 ].value.places.A.percentageChange ).toBeCloseTo( -41.18 );
+                expect( resultsAll[ 0 ].value.places.A.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 1 ].value.places.A.percentageChange ).toBeCloseTo( -41.18 );
+                expect( resultsAll[ 2 ].value.places.A.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 3 ].value.places.A.percentageChange ).toBe( -100 );
 
-                expect( resultsAll[ 0 ].value.places.B.percentageChange ).toBe( 0 );
-                expect( resultsAll[ 1 ].value.places.B.percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 2 ].value.places.B.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 0 ].value.places.B.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 1 ].value.places.B.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].value.places.B.percentageChange ).toBe( 0 );
                 expect( resultsAll[ 3 ].value.places.B.percentageChange ).toBe( 0 );
 
             });
 
-            it('allows getting the % change of territory A', function() {
+            it('allows getting the % change of territory A with a custom valueAccessor', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.territories.A.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.territories.A.visits; } );
+                groupVisitsByPlaceAndTerritoryByDate.order( function(d) { return d.territories.A.visits; } );
 
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( 650 );
-                expect( resultsAll[ 1 ].percentageChange ).toBe( -100 );
-                expect( resultsAll[ 2 ].percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 0 ]._debug.prevDayKey ).toBe( "2012-01-11" );
+                expect( resultsAll[ 0 ]._debug.thisDayKey ).toBe( "2012-01-12" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-15" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-13" );
+
+                expect( resultsAll[ 0 ].value.territories.A.visits ).toBe( 15 );
+                expect( resultsAll[ 1 ].value.territories.A.visits ).toBe( 10 );
+                expect( resultsAll[ 2 ].value.territories.A.visits ).toBe( 3 );
+                expect( resultsAll[ 3 ].value.territories.A.visits ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( 400 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
 
             });
 
-            it('allows getting the % change of territory B', function() {
+            it('allows getting the % change of territory B with a custom valueAccessor', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.territories.B.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.territories.B.visits; } );
+                groupVisitsByPlaceAndTerritoryByDate.order( function(d) { return d.territories.B.visits; } );
 
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( -100 );
-                expect( resultsAll[ 1 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 0 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( 0 );
                 expect( resultsAll[ 2 ].percentageChange ).toBe( -100 );
-                expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
 
             });
 
             xit('allows getting the % change of each territory', function() {
 
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
                 expect( resultsAll[ 0 ].percentageChange ).not.toBeDefined();
                 expect( resultsAll[ 1 ].percentageChange ).not.toBeDefined();
                 expect( resultsAll[ 2 ].percentageChange ).not.toBeDefined();
                 expect( resultsAll[ 3 ].percentageChange ).not.toBeDefined();
 
-                expect( resultsAll[ 0 ].value.territories.A.percentageChange ).toBe( 0 );
-                expect( resultsAll[ 1 ].value.territories.A.percentageChange ).toBe( 650 );
-                expect( resultsAll[ 2 ].value.territories.A.percentageChange ).toBe( -100 );
-                expect( resultsAll[ 3 ].value.territories.A.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 0 ].value.territories.A.percentageChange ).toBe( 400 );
+                expect( resultsAll[ 1 ].value.territories.A.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 2 ].value.territories.A.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 3 ].value.territories.A.percentageChange ).toBe( -100 );
 
-                expect( resultsAll[ 0 ].value.territories.B.percentageChange ).toBe( 0 );
-                expect( resultsAll[ 1 ].value.territories.B.percentageChange ).toBe( -100 );
-                expect( resultsAll[ 2 ].value.territories.B.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 0 ].value.territories.B.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 1 ].value.territories.B.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 2 ].value.territories.B.percentageChange ).toBe( -100 );
                 expect( resultsAll[ 3 ].value.territories.B.percentageChange ).toBe( -100 );
 
             });
 
             xit('allows getting the % change of each place and territory and total', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.totalVisits; } );
 
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
                 expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
                 expect( resultsAll[ 1 ].percentageChange ).toBe( 200 );

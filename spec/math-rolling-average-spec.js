@@ -99,6 +99,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             { date: "2012-01-12", visits: 3,  place: "B", territory: "A" },
             { date: "2012-01-13", visits: 10, place: "A", territory: "B" },
             { date: "2012-01-11", visits: 3,  place: "C", territory: "B" },
+            { date: "2012-01-11", visits: 1,  place: "A", territory: "A" },
             { date: "2012-01-15", visits: 10, place: "A", territory: "A" },
             { date: "2012-01-12", visits: 12, place: "B", territory: "A" },
             { date: "2012-01-13", visits: 7,  place: "A", territory: "B" }
@@ -799,13 +800,13 @@ describe('accumulateGroupForNDayMovingAverage', function() {
                 expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
                 expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
 
-                expect( resultsAll[ 0 ].value ).toBe( 2 );
+                expect( resultsAll[ 0 ].value ).toBe( 3 );
                 expect( resultsAll[ 1 ].value ).toBe( 0 );
                 expect( resultsAll[ 2 ].value ).toBe( 17 );
                 expect( resultsAll[ 3 ].value ).toBe( 10 );
 
                 expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
-                expect( resultsAll[ 1 ].rollingAverage ).toBe( 1 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 1.5 );
                 expect( resultsAll[ 2 ].rollingAverage ).toBe( 8.5 );
                 expect( resultsAll[ 3 ].rollingAverage ).toBe( 13.5 );
 
@@ -826,13 +827,13 @@ describe('accumulateGroupForNDayMovingAverage', function() {
                 expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
                 expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
 
-                expect( resultsAll[ 0 ].value ).toBe( 2 );
+                expect( resultsAll[ 0 ].value ).toBe( 3 );
                 expect( resultsAll[ 1 ].value ).toBe( 15 );
                 expect( resultsAll[ 2 ].value ).toBe( 0 );
                 expect( resultsAll[ 3 ].value ).toBe( 10 );
 
                 expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
-                expect( resultsAll[ 1 ].rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 9 );
                 expect( resultsAll[ 2 ].rollingAverage ).toBe( 7.5 );
                 expect( resultsAll[ 3 ].rollingAverage ).toBe( 5 );
 
@@ -926,14 +927,14 @@ describe('accumulateGroupForNDayMovingAverage', function() {
                     expect( resultsAll[ 3 ].key ).toBe( '2012-01-15' );
 
                     expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
-                    expect( resultsAll[ 1 ].rollingAverage ).toBe( 10 );
+                    expect( resultsAll[ 1 ].rollingAverage ).toBe( 10.5 );
                     expect( resultsAll[ 2 ].rollingAverage ).toBe( 16 );
                     expect( resultsAll[ 3 ].rollingAverage ).toBe( 13.5 );
 
-                    expect( resultsAll[ 0 ]._debug.cumulate ).toBe( 5 );
-                    expect( resultsAll[ 1 ]._debug.cumulate ).toBe( 20 );
-                    expect( resultsAll[ 2 ]._debug.cumulate ).toBe( 37 );
-                    expect( resultsAll[ 3 ]._debug.cumulate ).toBe( 47 );
+                    expect( resultsAll[ 0 ]._debug.cumulate ).toBe( 6 );
+                    expect( resultsAll[ 1 ]._debug.cumulate ).toBe( 21 );
+                    expect( resultsAll[ 2 ]._debug.cumulate ).toBe( 38 );
+                    expect( resultsAll[ 3 ]._debug.cumulate ).toBe( 48 );
 
                 });
 
@@ -952,13 +953,13 @@ describe('accumulateGroupForNDayMovingAverage', function() {
                 expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
                 expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
 
-                expect( resultsAll[ 0 ].value ).toBe( 2 );
+                expect( resultsAll[ 0 ].value ).toBe( 3 );
                 expect( resultsAll[ 1 ].value ).toBe( 0 );
                 expect( resultsAll[ 2 ].value ).toBe( 17 );
                 expect( resultsAll[ 3 ].value ).toBe( 10 );
 
                 expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
-                expect( resultsAll[ 1 ].rollingAverage ).toBe( 1 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 1.5 );
                 expect( resultsAll[ 2 ].rollingAverage ).toBe( 8.5 );
                 expect( resultsAll[ 3 ].rollingAverage ).toBe( 13.5 );
 
@@ -982,13 +983,13 @@ describe('accumulateGroupForNDayMovingAverage', function() {
                 expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
                 expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
 
-                expect( resultsAll[ 0 ].value ).toBe( 2 );
+                expect( resultsAll[ 0 ].value ).toBe( 3 );
                 expect( resultsAll[ 1 ].value ).toBe( 0 );
                 expect( resultsAll[ 2 ].value ).toBe( 17 );
                 expect( resultsAll[ 3 ].value ).toBe( 10 );
 
                 expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
-                expect( resultsAll[ 1 ].rollingAverage ).toBe( 1 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 1.5 );
                 expect( resultsAll[ 2 ].rollingAverage ).toBe( 8.5 );
                 expect( resultsAll[ 3 ].rollingAverage ).toBe( 13.5 );
 
@@ -1012,13 +1013,13 @@ describe('accumulateGroupForNDayMovingAverage', function() {
                 expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
                 expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
 
-                expect( resultsAll[ 0 ].value ).toBe( 2 );
+                expect( resultsAll[ 0 ].value ).toBe( 3 );
                 expect( resultsAll[ 1 ].value ).toBe( 0 );
                 expect( resultsAll[ 2 ].value ).toBe( 17 );
                 expect( resultsAll[ 3 ].value ).toBe( 10 );
 
                 expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
-                expect( resultsAll[ 1 ].rollingAverage ).toBe( 1 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 1.5 );
                 expect( resultsAll[ 2 ].rollingAverage ).toBe( 8.5 );
                 expect( resultsAll[ 3 ].rollingAverage ).toBe( 13.5 );
 
@@ -1086,13 +1087,13 @@ describe('accumulateGroupForNDayMovingAverage', function() {
                 expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
                 expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
                 
-                expect( resultsAll[ 0 ].value ).toBe( 2 );
+                expect( resultsAll[ 0 ].value ).toBe( 3 );
                 expect( resultsAll[ 1 ].value ).toBe( 15 );
                 expect( resultsAll[ 2 ].value ).toBe( 0 );
                 expect( resultsAll[ 3 ].value ).toBe( 10 );
 
                 expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
-                expect( resultsAll[ 1 ].rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 9 );
                 expect( resultsAll[ 2 ].rollingAverage ).toBe( 7.5 );
                 expect( resultsAll[ 3 ].rollingAverage ).toBe( 5 );
 
@@ -1441,7 +1442,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
                 ma2dayGroupVisitsByDate = null;
             });
 
-            it('can get moving average of place A using reduceSum group by filtering on a place dimension', function() {
+            it('can get moving average of place A using reduceSum group by filtering on a place dimension', function testCase() {
 
                 var dimensionPlaces = crossfilterInstance.dimension(function (d) {
                     return d.place
@@ -1458,18 +1459,18 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
                 expect( resultsAll[ 0 ].value ).toBe( 17 );
                 expect( resultsAll[ 1 ].value ).toBe( 10 );
-                expect( resultsAll[ 2 ].value ).toBe( 2 );
+                expect( resultsAll[ 2 ].value ).toBe( 3 );
                 expect( resultsAll[ 3 ].value ).toBe( 0 );
 
 
                 expect( resultsAll[ 0 ].rollingAverage ).toBe( 8.5 );
                 expect( resultsAll[ 1 ].rollingAverage ).toBe( 13.5 );
                 expect( resultsAll[ 2 ].rollingAverage ).toBe( 0 );
-                expect( resultsAll[ 3 ].rollingAverage ).toBe( 1 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBe( 1.5 );
 
             });
 
-            it('can get moving average of territory A using reduceSum group by filtering on a place dimension', function() {
+            it('can get moving average of territory A using reduceSum group by filtering on a place dimension', function testCase() {
 
                 var dimensionTerritories = crossfilterInstance.dimension(function (d) {
                     return d.territory;
@@ -1486,10 +1487,10 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
                 expect( resultsAll[ 0 ].value ).toBe( 15 );
                 expect( resultsAll[ 1 ].value ).toBe( 10 );
-                expect( resultsAll[ 2 ].value ).toBe( 2 );
+                expect( resultsAll[ 2 ].value ).toBe( 3 );
                 expect( resultsAll[ 3 ].value ).toBe( 0 );
 
-                expect( resultsAll[ 0 ].rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 9 );
                 expect( resultsAll[ 1 ].rollingAverage ).toBe( 5 );
                 expect( resultsAll[ 2 ].rollingAverage ).toBe( 0 );
                 expect( resultsAll[ 3 ].rollingAverage ).toBe( 7.5 );
@@ -1558,7 +1559,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
                 expect( resultsAll[ 0 ].rollingAverage ).toBeDefined();
             });
 
-            it('allows getting the rolling average of the total visits', function() {
+            it('allows getting the rolling average of the total visits', function testCase() {
 
                 var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
                 expect( resultsAll[ 0 ].rollingAverage ).toBeNaN();
@@ -1579,7 +1580,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
                 expect( resultsAll[ 2 ].key ).toBe( '2012-01-15' );
                 expect( resultsAll[ 3 ].key ).toBe( '2012-01-11' );
 
-                expect( resultsAll[ 0 ].rollingAverage ).toBe( 10 );
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 10.5 );
                 expect( resultsAll[ 1 ].rollingAverage ).toBe( 16 );
                 expect( resultsAll[ 2 ].rollingAverage ).toBe( 13.5 );
                 expect( resultsAll[ 3 ].rollingAverage ).toBe( 0 );
@@ -1587,11 +1588,11 @@ describe('accumulateGroupForNDayMovingAverage', function() {
                 expect( resultsAll[ 0 ]._debug.cumulate ).toBe( 15 );
                 expect( resultsAll[ 1 ]._debug.cumulate ).toBe( 32 );
                 expect( resultsAll[ 2 ]._debug.cumulate ).toBe( 42 );
-                expect( resultsAll[ 3 ]._debug.cumulate ).toBe( 47 );
+                expect( resultsAll[ 3 ]._debug.cumulate ).toBe( 48 );
 
             });
 
-            it('allows getting the rolling average of Place A', function() {
+            it('allows getting the rolling average of Place A', function testCase() {
 
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
 
@@ -1605,17 +1606,17 @@ describe('accumulateGroupForNDayMovingAverage', function() {
                 expect( resultsAll[ 0 ].value ).toBe( 0 );
                 expect( resultsAll[ 1 ].value ).toBe( 17 );
                 expect( resultsAll[ 2 ].value ).toBe( 10 );
-                expect( resultsAll[ 3 ].value ).toBe( 2 );
+                expect( resultsAll[ 3 ].value ).toBe( 3 );
 
 
-                expect( resultsAll[ 0 ].rollingAverage ).toBe( 1 );
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 1.5 );
                 expect( resultsAll[ 1 ].rollingAverage ).toBe( 8.5 );
                 expect( resultsAll[ 2 ].rollingAverage ).toBe( 13.5 );
                 expect( resultsAll[ 3 ].rollingAverage ).toBe( 0 );
 
             });
 
-            it('allows getting the rolling average of Place B', function() {
+            it('allows getting the rolling average of Place B', function testCase() {
 
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.B.visits; } );
 
@@ -1669,7 +1670,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
                 var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
-                expect( resultsAll[ 0 ].rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 9 );
                 expect( resultsAll[ 1 ].rollingAverage ).toBe( 7.5 );
                 expect( resultsAll[ 2 ].rollingAverage ).toBe( 5 );
                 expect( resultsAll[ 3 ].rollingAverage ).toBe( 0 );
