@@ -1,7 +1,12 @@
 crossfilter.ma
 =====
 
-crossfilter.ma is a [_crossfilter group_ modifier](https://github.com/dc-js/dc.js/wiki/FAQ#filter-the-data-before-its-charted) to calculate _moving averages_.
+crossfilter.ma is a [_crossfilter group_ modifier](https://github.com/dc-js/dc.js/wiki/FAQ#filter-the-data-before-its-charted)
+to calculate _moving averages_ and _percent change_.
+
+It is intended for time oriented data, but can be used for non-dates just as well as it is powered
+by [JavaScript's native Array.sort](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort) to get the keys in order to determine previous nodes for
+the calculations.
 
 
 How to Install
