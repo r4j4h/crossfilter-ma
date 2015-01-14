@@ -768,27 +768,101 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
         });
 
+        describe('works with multiple dimensions', function() {
 
-        describe('works with custom groupings', function() {
-
-            var percentageChangeGroup;
+            var ma2dayGroupVisitsByDate;
 
             beforeEach(function() {
                 mockCustomKeyValueData();
-                percentageChangeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByPlaceAndTerritoryByDate );
-                percentageChangeGroup._debug(true);
+                // Using normal grouping
+                ma2dayGroupVisitsByDate = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+                ma2dayGroupVisitsByDate._debug(true);
 
             });
 
             afterEach(function() {
-                percentageChangeGroup = null;
+                ma2dayGroupVisitsByDate = null;
+            });
+
+            it('can get moving average of place A using reduceSum group by filtering on a place dimension', function() {
+
+                var dimensionPlaces = crossfilterInstance.dimension(function (d) {
+                    return d.place
+                });
+
+                dimensionPlaces.filter("A");
+
+                var resultsAll = ma2dayGroupVisitsByDate.all();
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
+
+                expect( resultsAll[ 0 ].value ).toBe( 2 );
+                expect( resultsAll[ 1 ].value ).toBe( 0 );
+                expect( resultsAll[ 2 ].value ).toBe( 17 );
+                expect( resultsAll[ 3 ].value ).toBe( 10 );
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 1 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBe( 13.5 );
+
+            });
+
+            it('can get moving average of territory A using reduceSum group by filtering on a place dimension', function() {
+
+                var dimensionTerritories = crossfilterInstance.dimension(function (d) {
+                    return d.territory;
+                });
+
+                dimensionTerritories.filter("A");
+
+                var resultsAll = ma2dayGroupVisitsByDate.all();
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
+
+                expect( resultsAll[ 0 ].value ).toBe( 2 );
+                expect( resultsAll[ 1 ].value ).toBe( 15 );
+                expect( resultsAll[ 2 ].value ).toBe( 0 );
+                expect( resultsAll[ 3 ].value ).toBe( 10 );
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBe( 7.5 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBe( 5 );
+
+            });
+
+
+
+        });
+
+        describe('works with custom groupings', function() {
+
+            var ma2dayGroupVisitsByPlaceAndTerritoryByDate;
+
+            beforeEach(function() {
+                mockCustomKeyValueData();
+                // Using custom grouping
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByPlaceAndTerritoryByDate );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate._debug(true);
+
+            });
+
+            afterEach(function() {
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate = null;
             });
 
             it('maintains original custom value', function() {
 
                 var resultsAll;
                 var all = groupVisitsByPlaceAndTerritoryByDate.all();
-                resultsAll = percentageChangeGroup.all();
+                resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.all();
 
                 expect( all[ 0 ].key ).toBe( resultsAll[ 0 ].key );
                 expect( all[ 0 ].value ).toBe( resultsAll[ 0 ].value );
@@ -819,53 +893,119 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             });
 
-            it('adds rolling average', function() {
+            describe('using default configuration', function() {
 
-                var all = groupVisitsByPlaceAndTerritoryByDate.all();
-                var resultsAll = percentageChangeGroup.all();
+                it('adds rolling average key to results', function() {
 
-                expect( all[ 0 ].rollingAverage ).not.toBeDefined();
-                expect( resultsAll[ 0 ].rollingAverage ).toBeDefined();
+                    var all = groupVisitsByPlaceAndTerritoryByDate.all();
+                    var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.all();
+
+                    expect( all[ 0 ].rollingAverage ).not.toBeDefined();
+                    expect( resultsAll[ 0 ].rollingAverage ).toBeDefined();
+                });
+
+                it('allows getting the rolling average of the total visits with a custom valueAccessor', function() {
+
+                    var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.all();
+
+                    expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
+                    expect( resultsAll[ 1 ].rollingAverage ).toBeNaN();
+                    expect( resultsAll[ 1 ].rollingAverage ).not.toBe( 10 );
+                    expect( resultsAll[ 2 ].rollingAverage ).toBeNaN();
+                    expect( resultsAll[ 2 ].rollingAverage ).not.toBe( 16 );
+                    expect( resultsAll[ 3 ].rollingAverage ).toBeNaN();
+                    expect( resultsAll[ 3 ].rollingAverage ).not.toBe( 13.5 );
+
+                    ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.totalVisits; } );
+
+                    resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.all();
+
+                    expect( resultsAll[ 0 ].key ).toBe( '2012-01-11' );
+                    expect( resultsAll[ 1 ].key ).toBe( '2012-01-12' );
+                    expect( resultsAll[ 2 ].key ).toBe( '2012-01-13' );
+                    expect( resultsAll[ 3 ].key ).toBe( '2012-01-15' );
+
+                    expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
+                    expect( resultsAll[ 1 ].rollingAverage ).toBe( 10 );
+                    expect( resultsAll[ 2 ].rollingAverage ).toBe( 16 );
+                    expect( resultsAll[ 3 ].rollingAverage ).toBe( 13.5 );
+
+                    expect( resultsAll[ 0 ]._debug.cumulate ).toBe( 5 );
+                    expect( resultsAll[ 1 ]._debug.cumulate ).toBe( 20 );
+                    expect( resultsAll[ 2 ]._debug.cumulate ).toBe( 37 );
+                    expect( resultsAll[ 3 ]._debug.cumulate ).toBe( 47 );
+
+                });
+
+
             });
 
-            it('allows getting the rolling average of the total visits', function() {
 
-                var resultsAll = percentageChangeGroup.all();
+            it('allows getting the rolling average of Place A\'s visits with a custom valueAccessor', function() {
 
-                expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
-                expect( resultsAll[ 1 ].rollingAverage ).toBeNaN();
-                expect( resultsAll[ 1 ].rollingAverage ).not.toBe( 10 );
-                expect( resultsAll[ 2 ].rollingAverage ).toBeNaN();
-                expect( resultsAll[ 2 ].rollingAverage ).not.toBe( 16 );
-                expect( resultsAll[ 3 ].rollingAverage ).toBeNaN();
-                expect( resultsAll[ 3 ].rollingAverage ).not.toBe( 13.5 );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.all();
 
-                resultsAll = percentageChangeGroup.all();
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
 
-                expect( resultsAll[ 0 ].key ).toBe( '2012-01-11' );
-                expect( resultsAll[ 1 ].key ).toBe( '2012-01-12' );
-                expect( resultsAll[ 2 ].key ).toBe( '2012-01-13' );
-                expect( resultsAll[ 3 ].key ).toBe( '2012-01-15' );
+                expect( resultsAll[ 0 ].value ).toBe( 2 );
+                expect( resultsAll[ 1 ].value ).toBe( 0 );
+                expect( resultsAll[ 2 ].value ).toBe( 17 );
+                expect( resultsAll[ 3 ].value ).toBe( 10 );
 
                 expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
-                expect( resultsAll[ 1 ].rollingAverage ).toBe( 10 );
-                expect( resultsAll[ 2 ].rollingAverage ).toBe( 16 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 1 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBe( 8.5 );
                 expect( resultsAll[ 3 ].rollingAverage ).toBe( 13.5 );
 
-                expect( resultsAll[ 0 ]._debug.cumulate ).toBe( 5 );
-                expect( resultsAll[ 1 ]._debug.cumulate ).toBe( 20 );
-                expect( resultsAll[ 2 ]._debug.cumulate ).toBe( 37 );
-                expect( resultsAll[ 3 ]._debug.cumulate ).toBe( 47 );
+            });
+
+
+            it('supports filtering on a different place dimension using the totalVisits valueAccessor instead to get the rolling average of Place A', function() {
+
+                var dimensionPlaces = crossfilterInstance.dimension(function (d) {
+                    return d.place
+                });
+
+                dimensionPlaces.filter("A");
+
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.totalVisits; } );
+
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.all();
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
+
+                expect( resultsAll[ 0 ].value ).toBe( 2 );
+                expect( resultsAll[ 1 ].value ).toBe( 0 );
+                expect( resultsAll[ 2 ].value ).toBe( 17 );
+                expect( resultsAll[ 3 ].value ).toBe( 10 );
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 1 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBe( 13.5 );
 
             });
 
-            it('allows getting the rolling average of Place A', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.A.visits; } );
+            it('can alternatively filter instead to get the rolling average of Place A', function() {
 
-                var resultsAll = percentageChangeGroup.all();
+                var dimensionPlaces = crossfilterInstance.dimension(function (d) {
+                    return d.place
+                });
+
+                dimensionPlaces.filter("A");
+
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.totalVisits; } );
+
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.all();
 
                 expect( resultsAll[ 0 ].key ).toBe( "2012-01-11" );
                 expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
@@ -886,9 +1026,9 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             it('allows getting the rolling average of Place B', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.B.visits; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.B.visits; } );
 
-                var resultsAll = percentageChangeGroup.all();
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.all();
 
                 expect( resultsAll[ 0 ].key ).toBe( "2012-01-11" );
                 expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
@@ -912,10 +1052,11 @@ describe('accumulateGroupForNDayMovingAverage', function() {
                 // TODO Leaving off here
                 // Where we want to change the logic of the processing to happen more than once for each key?
 
-                percentageChangeGroup.iterationAccessor( function(d) { return d.value.places; } );
-                percentageChangeGroup.valueAccessor( function(d) { return d.visits; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor( function(d, itfcn) { return itfcn(d); } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor( function(d, itfcn) { return d.value.places.each(function(d) { return itfcn(d); }); } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.visits; } );
 
-                var resultsAll = percentageChangeGroup.all();
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.all();
 
                 expect( resultsAll[ 0 ].rollingAverage ).not.toBeDefined();
                 expect( resultsAll[ 1 ].rollingAverage ).not.toBeDefined();
@@ -936,9 +1077,19 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             it('allows getting the rolling average of territory A', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.territories.A.visits; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.territories.A.visits; } );
 
-                var resultsAll = percentageChangeGroup.all();
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.all();
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
+                
+                expect( resultsAll[ 0 ].value ).toBe( 2 );
+                expect( resultsAll[ 1 ].value ).toBe( 15 );
+                expect( resultsAll[ 2 ].value ).toBe( 0 );
+                expect( resultsAll[ 3 ].value ).toBe( 10 );
 
                 expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
                 expect( resultsAll[ 1 ].rollingAverage ).toBe( 8.5 );
@@ -949,9 +1100,9 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             it('allows getting the rolling average of territory B', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.territories.B.visits; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.territories.B.visits; } );
 
-                var resultsAll = percentageChangeGroup.all();
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.all();
 
                 expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
                 expect( resultsAll[ 1 ].rollingAverage ).toBe( 1.5 );
@@ -962,10 +1113,10 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             xit('allows getting the rolling average of each territory', function() {
 
-                percentageChangeGroup.iterationAccessor( function(d) { return d.value.territories; } );
-                percentageChangeGroup.valueAccessor( function(d) { return d.visits; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor( function(d) { return d.value.territories; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.visits; } );
 
-                var resultsAll = percentageChangeGroup.all();
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.all();
 
                 expect( resultsAll[ 0 ].rollingAverage ).not.toBeDefined();
                 expect( resultsAll[ 1 ].rollingAverage ).not.toBeDefined();
@@ -986,11 +1137,11 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             xit('allows getting the rolling average of each place and territory and total', function() {
 
-                percentageChangeGroup.iterationAccessor( function(d) { return d.value.places; } );
-                percentageChangeGroup.valueAccessor( function(d) { return d.visits; } );
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor( function(d) { return d.value.places; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.visits; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.totalVisits; } );
 
-                var resultsAll = percentageChangeGroup.all();
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.all();
 
                 expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
                 expect( resultsAll[ 1 ].rollingAverage ).toBe( 200 );
@@ -1273,26 +1424,101 @@ describe('accumulateGroupForNDayMovingAverage', function() {
         });
 
 
-        describe('works with custom groupings', function() {
 
-            var percentageChangeGroup;
+        describe('works with multiple dimensions', function() {
+
+            var ma2dayGroupVisitsByDate;
 
             beforeEach(function() {
                 mockCustomKeyValueData();
-                percentageChangeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByPlaceAndTerritoryByDate );
-                percentageChangeGroup._debug(true);
+                // Using normal grouping
+                ma2dayGroupVisitsByDate = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+                ma2dayGroupVisitsByDate._debug(true);
 
             });
 
             afterEach(function() {
-                percentageChangeGroup = null;
+                ma2dayGroupVisitsByDate = null;
+            });
+
+            it('can get moving average of place A using reduceSum group by filtering on a place dimension', function() {
+
+                var dimensionPlaces = crossfilterInstance.dimension(function (d) {
+                    return d.place
+                });
+
+                dimensionPlaces.filter("A");
+
+                var resultsAll = ma2dayGroupVisitsByDate.top(Infinity);
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-15" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-12" );
+
+                expect( resultsAll[ 0 ].value ).toBe( 17 );
+                expect( resultsAll[ 1 ].value ).toBe( 10 );
+                expect( resultsAll[ 2 ].value ).toBe( 2 );
+                expect( resultsAll[ 3 ].value ).toBe( 0 );
+
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 13.5 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBe( 1 );
+
+            });
+
+            it('can get moving average of territory A using reduceSum group by filtering on a place dimension', function() {
+
+                var dimensionTerritories = crossfilterInstance.dimension(function (d) {
+                    return d.territory;
+                });
+
+                dimensionTerritories.filter("A");
+
+                var resultsAll = ma2dayGroupVisitsByDate.top(Infinity);
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-15" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-13" );
+
+                expect( resultsAll[ 0 ].value ).toBe( 15 );
+                expect( resultsAll[ 1 ].value ).toBe( 10 );
+                expect( resultsAll[ 2 ].value ).toBe( 2 );
+                expect( resultsAll[ 3 ].value ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].rollingAverage ).toBe( 8.5 );
+                expect( resultsAll[ 1 ].rollingAverage ).toBe( 5 );
+                expect( resultsAll[ 2 ].rollingAverage ).toBe( 0 );
+                expect( resultsAll[ 3 ].rollingAverage ).toBe( 7.5 );
+
+            });
+
+        });
+
+
+        describe('works with custom groupings', function() {
+
+            var ma2dayGroupVisitsByPlaceAndTerritoryByDate;
+
+            beforeEach(function() {
+                mockCustomKeyValueData();
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByPlaceAndTerritoryByDate );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate._debug(true);
+
+            });
+
+            afterEach(function() {
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate = null;
             });
 
             it('maintains original custom value', function() {
 
                 var resultsAll;
                 var all = groupVisitsByPlaceAndTerritoryByDate.top(Infinity);
-                resultsAll = percentageChangeGroup.top(Infinity);
+                resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
                 expect( all[ 0 ].key ).toBe( resultsAll[ 0 ].key );
                 expect( all[ 0 ].value ).toBe( resultsAll[ 0 ].value );
@@ -1326,7 +1552,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             it('adds rollingAverage', function() {
 
                 var all = groupVisitsByPlaceAndTerritoryByDate.top(Infinity);
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
                 expect( all[ 0 ].rollingAverage ).not.toBeDefined();
                 expect( resultsAll[ 0 ].rollingAverage ).toBeDefined();
@@ -1334,7 +1560,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             it('allows getting the rolling average of the total visits', function() {
 
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
                 expect( resultsAll[ 0 ].rollingAverage ).toBeNaN();
                 expect( resultsAll[ 0 ].rollingAverage ).not.toBe( 1 );
                 expect( resultsAll[ 1 ].rollingAverage ).toBeNaN();
@@ -1344,9 +1570,9 @@ describe('accumulateGroupForNDayMovingAverage', function() {
                 expect( resultsAll[ 3 ].rollingAverage ).toBe( 0 );
                 expect( resultsAll[ 3 ].rollingAverage ).not.toBe( 41.18 );
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.totalVisits; } );
 
-                resultsAll = percentageChangeGroup.top(Infinity);
+                resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
                 expect( resultsAll[ 0 ].key ).toBe( '2012-01-12' );
                 expect( resultsAll[ 1 ].key ).toBe( '2012-01-13' );
@@ -1367,9 +1593,9 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             it('allows getting the rolling average of Place A', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.A.visits; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
 
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
                 expect( resultsAll[ 0 ].key ).toBe( "2012-01-12" );
                 expect( resultsAll[ 1 ].key ).toBe( "2012-01-13" );
@@ -1391,9 +1617,9 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             it('allows getting the rolling average of Place B', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.places.B.visits; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.B.visits; } );
 
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
                 expect( resultsAll[ 0 ].key ).toBe( "2012-01-12" );
                 expect( resultsAll[ 1 ].key ).toBe( "2012-01-13" );
@@ -1414,11 +1640,11 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             xit('allows getting the rolling average of each place', function() {
 
-                percentageChangeGroup.iterationAccessor( function(d) { return d.value.places; } );
-                percentageChangeGroup.valueAccessor( function(d) { return d.visits; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor( function(d) { return d.value.places; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.visits; } );
 
 
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
                 expect( resultsAll[ 0 ].rollingAverage ).not.toBeDefined();
                 expect( resultsAll[ 1 ].rollingAverage ).not.toBeDefined();
@@ -1439,9 +1665,9 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             it('allows getting the rolling average of territory A', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.territories.A.visits; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.territories.A.visits; } );
 
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
                 expect( resultsAll[ 0 ].rollingAverage ).toBe( 8.5 );
                 expect( resultsAll[ 1 ].rollingAverage ).toBe( 7.5 );
@@ -1452,9 +1678,9 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             it('allows getting the rolling average of territory B', function() {
 
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.territories.B.visits; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.territories.B.visits; } );
 
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
                 expect( resultsAll[ 0 ].rollingAverage ).toBe( 1.5 );
                 expect( resultsAll[ 1 ].rollingAverage ).toBe( 8.5 );
@@ -1465,10 +1691,10 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             xit('allows getting the rolling average of each territory', function() {
 
-                percentageChangeGroup.iterationAccessor( function(d) { return d.value.territories; } );
-                percentageChangeGroup.valueAccessor( function(d) { return d.visits; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor( function(d) { return d.value.territories; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.visits; } );
 
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
                 expect( resultsAll[ 0 ].rollingAverage ).not.toBeDefined();
                 expect( resultsAll[ 1 ].rollingAverage ).not.toBeDefined();
@@ -1489,11 +1715,11 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             xit('allows getting the rolling average of each place and territory and total', function() {
 
-                percentageChangeGroup.iterationAccessor( function(d) { return d.value.places; } );
-                percentageChangeGroup.valueAccessor( function(d) { return d.visits; } );
-                percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor( function(d) { return d.value.places; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.visits; } );
+                ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.totalVisits; } );
 
-                var resultsAll = percentageChangeGroup.top(Infinity);
+                var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
                 expect( resultsAll[ 0 ].rollingAverage ).toBe( 0 );
                 expect( resultsAll[ 1 ].rollingAverage ).toBe( 200 );
