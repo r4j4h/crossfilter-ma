@@ -428,9 +428,17 @@ expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
 How to Test
 =====
 
-- Run `grunt test`.
-- Run `grunt server` and visit `http://0.0.0.0:8888/spec/`
-- Run `grunt coverage` and then `grunt server` and visit `http://0.0.0.0:8888/coverage/`
+Tests can be run via CLI using Jasmine or in the browser.
+
+- Run `grunt test` to test in the CLI.
+- Run `grunt server` and visit `http://0.0.0.0:8888/spec/` in your browser to run in browser.
+
+
+How to Test Code Coverage
+====
+
+- Run `grunt coverage`
+- Run `grunt server` and visit `http://0.0.0.0:8888/coverage/jasmine/`
 
 
 
