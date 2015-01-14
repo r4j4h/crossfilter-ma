@@ -1,6 +1,6 @@
 {
   "name": "crossfilter-ma",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "main": ["crossfilter-ma.js"],
   "ignore": [
   ],
