@@ -400,14 +400,25 @@ expect( resultsAll[ 3 ].percentageChange ).not.toBe( 41.18 );
 
 // Let's inform crossfilter$ma to look deeper into that object for the totalVisits property
 percentageChangeGroup.valueAccessor( function(d) { return d.value.totalVisits; } );
+groupVisitsByPlaceAndTerritoryByDate.order( function(d) { return d.totalVisits; } );
 
 resultsAll = percentageChangeGroup.all();
 
 // Now we've got our expected data!
-expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
-expect( resultsAll[ 1 ].percentageChange ).toBe( 200 );
-expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( 13.33 );
-expect( resultsAll[ 3 ].percentageChange ).toBeCloseTo( -41.18 );
+expect( resultsAll[ 0 ].key ).toBe( "2012-01-13" );
+expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
+expect( resultsAll[ 2 ].key ).toBe( "2012-01-15" );
+expect( resultsAll[ 3 ].key ).toBe( "2012-01-11" );
+
+expect( resultsAll[ 0 ].value.totalVisits ).toBe( 17 );
+expect( resultsAll[ 1 ].value.totalVisits ).toBe( 15 );
+expect( resultsAll[ 2 ].value.totalVisits ).toBe( 10 );
+expect( resultsAll[ 3 ].value.totalVisits ).toBe( 6 );
+
+expect( resultsAll[ 0 ].percentageChange ).toBeCloseTo( 13.33 );
+expect( resultsAll[ 1 ].percentageChange ).toBe( 150 );
+expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( -41.18 );
+expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
 
 ```
 
