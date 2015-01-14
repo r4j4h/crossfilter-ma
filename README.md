@@ -21,6 +21,12 @@ How to Install
 How to Use
 =====
 
+Index
+- [Calculating a Rolling/Moving Average](#calculating-a-rollingmoving-average)
+- [Calculating Percent Change](#calculating-percent-change)
+- [Complex Data / Grouping](#complex-data--grouping)
+
+
 Calculating a Rolling/Moving Average
 ----
 
@@ -166,7 +172,7 @@ resultsWithRollingAverages[2] = {
 
 ```
 
-
+[Back to Top](#crossfilterma)
 
 Calculating Percent Change
 ---
@@ -282,6 +288,7 @@ results = [
 
 ```
 
+[Back to Top](#crossfilterma)
 
 Complex Data / Grouping
 ----
@@ -422,7 +429,7 @@ expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
 
 ```
 
-
+[Back to Top](#crossfilterma)
 
 
 How to Test
@@ -442,7 +449,7 @@ How to Test Code Coverage
 
 
 
-
+[Back to Top](#crossfilterma)
 
 
 Inspired By
@@ -454,3 +461,6 @@ Inspired By
   - An approach towards averages on crossfilter groups
 - [crossfilter](https://github.com/square/crossfilter)
 - [d3](https://github.com/mbostock/d3)
+
+
+Thanks for reading! :o)
