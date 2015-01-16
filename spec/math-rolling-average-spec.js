@@ -996,7 +996,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
             });
 
 
-            it('can alternatively filter instead to get the rolling average of Place A', function() {
+            it('can alternatively filter instead to get the rolling average of Place A with a custom valueAccessor', function() {
 
                 var dimensionPlaces = crossfilterInstance.dimension(function (d) {
                     return d.place
@@ -1025,7 +1025,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             });
 
-            it('allows getting the rolling average of Place B', function() {
+            it('allows getting the rolling average of Place B with a custom valueAccessor', function() {
 
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.B.visits; } );
 
@@ -1048,7 +1048,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             });
 
-            xit('allows getting the rolling average of each place', function() {
+            xit('allows getting the rolling average of each place with a custom valueAccessor', function() {
 
                 // TODO Leaving off here
                 // Where we want to change the logic of the processing to happen more than once for each key?
@@ -1076,7 +1076,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             });
 
-            it('allows getting the rolling average of territory A', function() {
+            it('allows getting the rolling average of territory A with a custom valueAccessor', function() {
 
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.territories.A.visits; } );
 
@@ -1099,7 +1099,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             });
 
-            it('allows getting the rolling average of territory B', function() {
+            it('allows getting the rolling average of territory B with a custom valueAccessor', function() {
 
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.territories.B.visits; } );
 
@@ -1112,7 +1112,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             });
 
-            xit('allows getting the rolling average of each territory', function() {
+            xit('allows getting the rolling average of each territory with a custom valueAccessor', function() {
 
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor( function(d) { return d.value.territories; } );
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.visits; } );
@@ -1136,7 +1136,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             });
 
-            xit('allows getting the rolling average of each place and territory and total', function() {
+            xit('allows getting the rolling average of each place and territory and total with a custom valueAccessor', function() {
 
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor( function(d) { return d.value.places; } );
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.visits; } );
@@ -1559,7 +1559,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
                 expect( resultsAll[ 0 ].rollingAverage ).toBeDefined();
             });
 
-            it('allows getting the rolling average of the total visits', function testCase() {
+            it('allows getting the rolling average of the total visits with a custom valueAccessor', function testCase() {
 
                 var resultsAll = ma2dayGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
                 expect( resultsAll[ 0 ].rollingAverage ).toBeNaN();
@@ -1592,7 +1592,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             });
 
-            it('allows getting the rolling average of Place A', function testCase() {
+            it('allows getting the rolling average of Place A with a custom valueAccessor', function testCase() {
 
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
 
@@ -1616,7 +1616,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             });
 
-            it('allows getting the rolling average of Place B', function testCase() {
+            it('allows getting the rolling average of Place B with a custom valueAccessor', function testCase() {
 
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.B.visits; } );
 
@@ -1639,7 +1639,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             });
 
-            xit('allows getting the rolling average of each place', function() {
+            xit('allows getting the rolling average of each place with a custom valueAccessor', function() {
 
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor( function(d) { return d.value.places; } );
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.visits; } );
@@ -1664,7 +1664,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             });
 
-            it('allows getting the rolling average of territory A', function() {
+            it('allows getting the rolling average of territory A with a custom valueAccessor', function() {
 
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.territories.A.visits; } );
 
@@ -1677,7 +1677,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             });
 
-            it('allows getting the rolling average of territory B', function() {
+            it('allows getting the rolling average of territory B with a custom valueAccessor', function() {
 
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.territories.B.visits; } );
 
@@ -1690,7 +1690,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             });
 
-            xit('allows getting the rolling average of each territory', function() {
+            xit('allows getting the rolling average of each territory with a custom valueAccessor', function() {
 
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor( function(d) { return d.value.territories; } );
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.visits; } );
@@ -1714,7 +1714,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
             });
 
-            xit('allows getting the rolling average of each place and territory and total', function() {
+            xit('allows getting the rolling average of each place and territory and total with a custom valueAccessor', function() {
 
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor( function(d) { return d.value.places; } );
                 ma2dayGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.visits; } );

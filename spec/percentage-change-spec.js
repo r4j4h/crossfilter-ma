@@ -786,7 +786,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
             });
 
-            it('allows getting the % change of Place A', function() {
+            it('allows getting the % change of Place A with a custom valueAccessor', function() {
 
                 percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
                 groupVisitsByPlaceAndTerritoryByDate.order( function(d) { return d.value.places.A.visits; } );
@@ -814,7 +814,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
             });
 
-            it('allows getting the % change of Place B', function() {
+            it('allows getting the % change of Place B with a custom valueAccessor', function() {
 
                 percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.B.visits; } );
 
@@ -827,7 +827,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
             });
 
-            xit('allows getting the % change of each place', function() {
+            xit('allows getting the % change of each place with a custom valueAccessor', function() {
 
                 percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
 
@@ -850,7 +850,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
             });
 
-            it('allows getting the % change of territory A', function() {
+            it('allows getting the % change of territory A with a custom valueAccessor', function() {
 
                 percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.territories.A.visits; } );
 
@@ -878,7 +878,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
             });
 
-            it('allows getting the % change of territory B', function() {
+            it('allows getting the % change of territory B with a custom valueAccessor', function() {
 
                 percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.territories.B.visits; } );
 
@@ -912,7 +912,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
             });
 
-            xit('allows getting the % change of each place and territory and total', function() {
+            xit('allows getting the % change of each place and territory and total with a custom valueAccessor', function() {
 
                 percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.totalVisits; } );
 
