@@ -36,11 +36,45 @@ crossfilterMA.constants = {
 
 var crossfilterMA = crossfilterMA || {};
 
+
+/**
+ * Order a set of datums that contain rollingAverage values by rollingAverage
+ *
+ * @param {Boolean|Number} orderingByRollingAverage If 1, orders ascending. If -1, orders descending. Else, noop.
+ * @param {Array<{rollingAverage: Number}>} results Set of datums
+ */
+function _potentiallyOrderByRollingAverage( orderingByRollingAverage, results ) {
+
+    if ( orderingByRollingAverage === 1 ) {
+        results.sort( function ( a, b ) {
+            if ( a.rollingAverage > b.rollingAverage ) {
+                return 1;
+            }
+            if ( a.rollingAverage < b.rollingAverage ) {
+                return -1;
+            }
+            // a must be equal to b
+            return 0;
+        } );
+    } else if ( orderingByRollingAverage === -1 ) {
+        results.sort( function ( a, b ) {
+            if ( a.rollingAverage > b.rollingAverage ) {
+                return -1;
+            }
+            if ( a.rollingAverage < b.rollingAverage ) {
+                return 1;
+            }
+            // a must be equal to b
+            return 0;
+        } );
+    }
+
+}
+
+
+
 /**
  * Calculate the average of a set of numbers
- *
- * TODO Remove date and make only iterative
- * TODO Make date centric that is less performant but works w/ unordered groups and redundant keyed groups
  *
  * @param {{all: Function, top: Function}} sourceGroup Crossfilter group.
  * @param {Number} [ndays] Number of datapoints for moving average. Defaults to the current value of
@@ -59,6 +93,8 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
     ndays = ( typeof ndays !== 'undefined' ) ? ndays : crossfilterMA.constants.DEFAULT_MOVING_AVERAGE_NODES;
     debugMode = ( typeof debugMode !== 'undefined' ) ? !!debugMode : false;
     rolldownMode = ( typeof rolldownMode !== 'undefined' ) ? !!rolldownMode : false;
+
+    var orderingByRollingAverage = false;
 
     var _keyAccessor;
     var _valueAccessor;
@@ -136,6 +172,32 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 return _valueAccessor;
             }
             _valueAccessor = _;
+        },
+
+
+        /**
+         * Enables/disables/configures ordering by rolling average.
+         *
+         * @param {Boolean|Number} [_]
+         * If not provided, retur
+         */
+        orderByMovingAverage: function( _ ) {
+            if ( typeof _ === 'undefined' ) {
+                return orderingByRollingAverage;
+            }
+            switch ( _ ) {
+                case 1:
+                    orderingByRollingAverage = 1;
+                    break;
+                case -1:
+                    orderingByRollingAverage = -1;
+                    break;
+                default:
+                case 0:
+                    orderingByRollingAverage = false;
+                    break;
+
+            }
         },
 
 
@@ -251,6 +313,8 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 return returnObj;
             } );
 
+            _potentiallyOrderByRollingAverage( orderingByRollingAverage, accumulatedAll );
+
             return accumulatedAll;
         },
 
@@ -365,6 +429,8 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 return returnObj;
             } );
 
+            _potentiallyOrderByRollingAverage( orderingByRollingAverage, accumulatedAll );
+
             return accumulatedAll;
         }
     };
@@ -373,11 +439,44 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
 
 var crossfilterMA = crossfilterMA || {};
 
+
+/**
+ * Order a set of datums that contain percentageChange values by percentageChange
+ *
+ * @param {Boolean|Number} orderingByPercentageChange If 1, orders ascending. If -1, orders descending. Else, noop.
+ * @param {Array<{percentageChange: Number}>} results Set of datums
+ */
+function _potentiallyOrderByPercentageChange( orderingByPercentageChange, results ) {
+
+    if ( orderingByPercentageChange === 1 ) {
+        results.sort( function ( a, b ) {
+            if ( a.percentageChange > b.percentageChange ) {
+                return 1;
+            }
+            if ( a.percentageChange < b.percentageChange ) {
+                return -1;
+            }
+            // a must be equal to b
+            return 0;
+        } );
+    } else if ( orderingByPercentageChange === -1 ) {
+        results.sort( function ( a, b ) {
+            if ( a.percentageChange > b.percentageChange ) {
+                return -1;
+            }
+            if ( a.percentageChange < b.percentageChange ) {
+                return 1;
+            }
+            // a must be equal to b
+            return 0;
+        } );
+    }
+
+}
+
+
 /**
  * Calculate the percentage change for a set of numbers
- *
- * TODO Remove date and make only iterative
- * TODO Make date centric that is less performant but works w/ unordered groups and redundant keyed groups
  *
  * @param {{all: Function, top: Function}} sourceGroup Crossfilter group.
  * crossfilterMA.constants.DEFAULT_MOVING_AVERAGE_NODES if not provided.
@@ -392,6 +491,7 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
 
     // Handle defaults
     debugMode = ( typeof debugMode !== 'undefined' ) ? !!debugMode : false;
+    var orderingByPercentageChange = false;
 
     var _keyAccessor;
     var _valueAccessor;
@@ -442,6 +542,31 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
                 return _valueAccessor;
             }
             _valueAccessor = _;
+        },
+
+        /**
+         * Enables/disables/configures ordering by percent change.
+         *
+         * @param {Boolean|Number} [_]
+         * If not provided, retur
+         */
+        orderByPercentageChange: function( _ ) {
+            if ( typeof _ === 'undefined' ) {
+                return orderingByPercentageChange;
+            }
+            switch ( _ ) {
+                case 1:
+                    orderingByPercentageChange = 1;
+                    break;
+                case -1:
+                    orderingByPercentageChange = -1;
+                    break;
+                default:
+                case 0:
+                    orderingByPercentageChange = false;
+                    break;
+
+            }
         },
 
 
@@ -529,6 +654,8 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
 
                 return returnObj;
             } );
+
+            _potentiallyOrderByPercentageChange( orderingByPercentageChange, accumulatedAll );
 
             return accumulatedAll;
         },
@@ -618,6 +745,8 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
 
                 return returnObj;
             } );
+
+            _potentiallyOrderByPercentageChange( orderingByPercentageChange, accumulatedAll );
 
             return accumulatedAll;
 
