@@ -63,6 +63,7 @@ var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage(
 var resultsWithRollingAverages = rollingAverageFakeGroup.all();
 
 // Use result
+/*
 expect( resultsWithRollingAverages[0].key ).toBe( '2012-01-11' );
 expect( resultsWithRollingAverages[0].value ).toBe( 2 );
 expect( resultsWithRollingAverages[0].rollingAverage ).toBe( 0 ); // 2 by itself is not a rolling average
@@ -90,7 +91,7 @@ expect( resultsWithRollingAverages[5].rollingAverage ).toBe( 8.333333333333334 )
 expect( resultsWithRollingAverages[6].key ).toBe( '2012-01-15' );
 expect( resultsWithRollingAverages[6].value ).toBe( 7 );
 expect( resultsWithRollingAverages[6].rollingAverage ).toBe( 9.666666666666666 );
-
+*/
 
 
 // Supports changing the number of days
@@ -100,6 +101,7 @@ rollingAverageFakeGroup.ndays(2);
 var resultsWithRollingAverages = rollingAverageFakeGroup.all();
 
 // Use result
+/*
 expect( resultsWithRollingAverages[0].key ).toBe( '2012-01-11' );
 expect( resultsWithRollingAverages[0].value ).toBe( 2 );
 expect( resultsWithRollingAverages[0].rollingAverage ).toBe( 0 ); // 2 by itself is not a rolling average
@@ -107,7 +109,7 @@ expect( resultsWithRollingAverages[0].rollingAverage ).toBe( 0 ); // 2 by itself
 expect( resultsWithRollingAverages[1].key ).toBe( '2012-01-12' );
 expect( resultsWithRollingAverages[1].value ).toBe( 3 );
 expect( resultsWithRollingAverages[1].rollingAverage ).toBe( 2.5 );
-
+*/
 
 
 rollingAverageFakeGroup.ndays(3); // (resetting back to 3 for sake of example)
@@ -121,6 +123,7 @@ rollingAverageFakeGroup.rolldown(true);
 var resultsWithRollingAverages = rollingAverageFakeGroup.all();
 
 // Now our result includes averages on data points where a 3 day average is not possible:
+/*
 expect( resultsWithRollingAverages[0].key ).toBe( '2012-01-11' );
 expect( resultsWithRollingAverages[0].value ).toBe( 2 );
 expect( resultsWithRollingAverages[0].rollingAverage ).toBe( 2 ); // This averages with itself now
@@ -132,8 +135,8 @@ expect( resultsWithRollingAverages[1].rollingAverage ).toBe( 2.5 ); // This is a
 expect( resultsWithRollingAverages[2].key ).toBe( '2012-01-13' );
 expect( resultsWithRollingAverages[2].value ).toBe( 10 );
 expect( resultsWithRollingAverages[2].rollingAverage ).toBe( 5 ); // And we proceed with our 3 days...
-expect( resultsWithRollingAverages[3].rollingAverage ).toBe( 5.333333333333333 );
-
+expect( resultsWithRollingAverages[3].rollingAverage ).toBeCloseTo( 5.333333333333333 );
+*/
 
 
 // Supports a debug mode to see the values used in calculations
@@ -143,7 +146,9 @@ rollingAverageFakeGroup._debug(true);
 var resultsWithRollingAverages = rollingAverageFakeGroup.all();
 
 // Now our results include debugging information..
+/*
 expect( resultsWithRollingAverages[0]._debug ).toBeDefined();
+*/
 
 /*
 resultsWithRollingAverages[2] = {
@@ -168,6 +173,18 @@ resultsWithRollingAverages[2] = {
         ]
     }
 }
+*/
+
+
+
+// We can also sort by moving average
+rollingAverageFakeGroup.orderByMovingAverage( 1 ); // Ascending
+rollingAverageFakeGroup.orderByMovingAverage( -1 ); // Descending
+
+resultsWithRollingAverages = rollingAverageFakeGroup.all();
+
+/*
+expect( resultsWithRollingAverages[ 0 ].rollingAverage ).toBeCloseTo( 9.66666 );
 */
 
 ```
@@ -204,7 +221,7 @@ var group = dim.group().reduceSum( function(d) { return d.visits; } );
 
 
 // Get values with Percent Change
-var pc = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+var pc = crossfilterMa.accumulateGroupForPercentageChange( group );
 
 // Get results with current crossfilter filtering applied
 var results = pc.all();
@@ -213,6 +230,7 @@ var results = pc.all();
 
 
 // Use result
+/*
 expect( results[0].key ).toBe( '2012-01-11' );
 expect( results[0].value ).toBe( 2 );
 expect( results[0].percentageChange ).toBe( 0 );
@@ -248,12 +266,13 @@ expect( results[5].percentageChange ).toBe( 20 );
 expect( results[6].key ).toBe( '2012-01-17' );
 expect( results[6].value ).toBe( 7 );
 expect( results[6].percentageChange ).toBe( -41.66666666666667 );
-
+*/
 
 
 
 // Supports debug mode
-var pc = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate, true );
+// var pc = crossfilterMa.accumulateGroupForPercentageChange( group, true ); // Enabling via constructor
+pc._debug( true ); // Enabling via method
 
 // Regenerate results w/ debug mode on
 var results = pc.all();
@@ -286,6 +305,18 @@ results = [
 ]
 */
 
+
+
+// We can also sort by percentage change
+pc.orderByPercentageChange( 1 ); // Ascending
+pc.orderByPercentageChange( -1 ); // Descending
+
+resultsAll = pc.all();
+
+/*
+expect( resultsAll[ 0 ].percentageChange ).toBe( 233.33333333333334 );
+*/
+
 ```
 
 [Back to Top](#crossfilterma)
@@ -296,6 +327,10 @@ Complex Data / Grouping
 Custom Key/Value accessors
 
 ```javascript
+// Get reference
+var crossfilterMa = crossfilter$ma;             // Both variables work and are identical.
+var crossfilterMa = window['crossfilter-ma'];   // Providing both b/c GitHub naming and convenience impedence mismatch.
+
 // Prepare more complex data
 setOfNumbers = [
     { date: "2012-01-11", visits: 2,  place: "A", territory: "A" },
@@ -308,7 +343,7 @@ setOfNumbers = [
 ];
 
 // Crossfilter it
-crossfilterInstance = crossfilter( mockData );
+crossfilterInstance = crossfilter( setOfNumbers );
 
 dimensionDate = crossfilterInstance.dimension(function (d) {
     return d.date
@@ -426,6 +461,17 @@ expect( resultsAll[ 0 ].percentageChange ).toBeCloseTo( 13.33 );
 expect( resultsAll[ 1 ].percentageChange ).toBe( 150 );
 expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( -41.18 );
 expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
+
+
+// We can also still sort by percentage change
+percentageChangeGroup.orderByPercentageChange( 1 ); // Ascending
+percentageChangeGroup.orderByPercentageChange( -1 ); // Descending
+
+resultsAll = percentageChangeGroup.all();
+
+expect( resultsAll[ 0 ].percentageChange ).toBe( 200 );
+
+
 
 ```
 
