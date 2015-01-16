@@ -1,10 +1,44 @@
 var crossfilterMA = crossfilterMA || {};
 
+
+/**
+ * Order a set of datums that contain rollingAverage values by rollingAverage
+ *
+ * @param {Boolean|Number} orderingByRollingAverage If 1, orders ascending. If -1, orders descending. Else, noop.
+ * @param {Array<{rollingAverage: Number}>} results Set of datums
+ */
+function _potentiallyOrderByRollingAverage( orderingByRollingAverage, results ) {
+
+    if ( orderingByRollingAverage === 1 ) {
+        results.sort( function ( a, b ) {
+            if ( a.rollingAverage > b.rollingAverage ) {
+                return 1;
+            }
+            if ( a.rollingAverage < b.rollingAverage ) {
+                return -1;
+            }
+            // a must be equal to b
+            return 0;
+        } );
+    } else if ( orderingByRollingAverage === -1 ) {
+        results.sort( function ( a, b ) {
+            if ( a.rollingAverage > b.rollingAverage ) {
+                return -1;
+            }
+            if ( a.rollingAverage < b.rollingAverage ) {
+                return 1;
+            }
+            // a must be equal to b
+            return 0;
+        } );
+    }
+
+}
+
+
+
 /**
  * Calculate the average of a set of numbers
- *
- * TODO Remove date and make only iterative
- * TODO Make date centric that is less performant but works w/ unordered groups and redundant keyed groups
  *
  * @param {{all: Function, top: Function}} sourceGroup Crossfilter group.
  * @param {Number} [ndays] Number of datapoints for moving average. Defaults to the current value of
@@ -23,6 +57,8 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
     ndays = ( typeof ndays !== 'undefined' ) ? ndays : crossfilterMA.constants.DEFAULT_MOVING_AVERAGE_NODES;
     debugMode = ( typeof debugMode !== 'undefined' ) ? !!debugMode : false;
     rolldownMode = ( typeof rolldownMode !== 'undefined' ) ? !!rolldownMode : false;
+
+    var orderingByRollingAverage = false;
 
     var _keyAccessor;
     var _valueAccessor;
@@ -100,6 +136,32 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 return _valueAccessor;
             }
             _valueAccessor = _;
+        },
+
+
+        /**
+         * Enables/disables/configures ordering by rolling average.
+         *
+         * @param {Boolean|Number} [_]
+         * If not provided, retur
+         */
+        orderByMovingAverage: function( _ ) {
+            if ( typeof _ === 'undefined' ) {
+                return orderingByRollingAverage;
+            }
+            switch ( _ ) {
+                case 1:
+                    orderingByRollingAverage = 1;
+                    break;
+                case -1:
+                    orderingByRollingAverage = -1;
+                    break;
+                default:
+                case 0:
+                    orderingByRollingAverage = false;
+                    break;
+
+            }
         },
 
 
@@ -215,6 +277,8 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
                 return returnObj;
             } );
 
+            _potentiallyOrderByRollingAverage( orderingByRollingAverage, accumulatedAll );
+
             return accumulatedAll;
         },
 
@@ -328,6 +392,8 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
 
                 return returnObj;
             } );
+
+            _potentiallyOrderByRollingAverage( orderingByRollingAverage, accumulatedAll );
 
             return accumulatedAll;
         }

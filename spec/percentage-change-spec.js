@@ -437,25 +437,6 @@ describe('accumulateGroupForPercentageChange', function() {
             var state = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange();
             expect( state ).toBe( false );
 
-            groupVisitsByPlaceAndTerritoryByDate.order( function(d) { return d.places.A.visits; } );
-
-            var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
-
-            expect( resultsAll[ 0 ].key ).toBe( "2012-01-13" );
-            expect( resultsAll[ 1 ].key ).toBe( "2012-01-15" );
-            expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
-            expect( resultsAll[ 3 ].key ).toBe( "2012-01-12" );
-
-            expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 17 );
-            expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 10 );
-            expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 3 );
-            expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 0 );
-
-            expect( resultsAll[ 0 ].percentageChange ).toBe( Infinity );
-            expect( resultsAll[ 1 ].percentageChange ).toBeCloseTo( -41.18 );
-            expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
-            expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
-
         });
 
         it('can be turned on', function() {
