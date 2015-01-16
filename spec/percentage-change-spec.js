@@ -408,6 +408,170 @@ describe('accumulateGroupForPercentageChange', function() {
     });
 
 
+    describe('orderByPercentageChange', function() {
+
+        var percentageChangeGroupVisitsByPlaceAndTerritoryByDate;
+
+        beforeEach(function() {
+            mockCustomKeyValueData();
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByPlaceAndTerritoryByDate );
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate._debug(true);
+
+        });
+
+        afterEach(function() {
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate = null;
+        });
+
+        it('allows retrieving the current configuration', function() {
+
+            var state = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange();
+            expect( state ).toBe( false );
+
+        });
+
+
+        it('is off by default', function() {
+
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
+            var state = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange();
+            expect( state ).toBe( false );
+
+            groupVisitsByPlaceAndTerritoryByDate.order( function(d) { return d.places.A.visits; } );
+
+            var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
+
+            expect( resultsAll[ 0 ].key ).toBe( "2012-01-13" );
+            expect( resultsAll[ 1 ].key ).toBe( "2012-01-15" );
+            expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
+            expect( resultsAll[ 3 ].key ).toBe( "2012-01-12" );
+
+            expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 17 );
+            expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 10 );
+            expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 3 );
+            expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 0 );
+
+            expect( resultsAll[ 0 ].percentageChange ).toBe( Infinity );
+            expect( resultsAll[ 1 ].percentageChange ).toBeCloseTo( -41.18 );
+            expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
+            expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
+
+        });
+
+        it('can be turned on', function() {
+
+            var state = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange();
+            expect( state ).not.toBe( true );
+
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange(1);
+
+            state = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange();
+            expect( state ).toBe( 1 );
+
+        });
+
+
+        it('can be turned off by passing 0 or false', function() {
+
+            var state = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange();
+            expect( state ).not.toBe( 1 );
+            expect( state ).not.toBe( -1 );
+
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange(1);
+            state = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange();
+
+            expect( state ).toBe( 1 );
+
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange(0);
+            state = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange();
+
+            expect( state ).not.toBe( 1 );
+            expect( state ).not.toBe( -1 );
+            expect( state ).toBe( false );
+
+        });
+
+        it('allows sorting ascending by passing 1', function() {
+
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange(1);
+
+            groupVisitsByPlaceAndTerritoryByDate.order( function(d) { return d.places.A.visits; } );
+
+            var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
+
+            expect( resultsAll[ 3 ].key ).toBe( "2012-01-13" );
+            expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
+            expect( resultsAll[ 1 ].key ).toBe( "2012-01-15" );
+            expect( resultsAll[ 0 ].key ).toBe( "2012-01-12" );
+
+            expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 17 );
+            expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 3 );
+            expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 10 );
+            expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 0 );
+
+            expect( resultsAll[ 3 ].percentageChange ).toBe( Infinity );
+            expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
+            expect( resultsAll[ 1 ].percentageChange ).toBeCloseTo( -41.18 );
+            expect( resultsAll[ 0 ].percentageChange ).toBe( -100 );
+
+        });
+
+        it('allows sorting descending by passing -1', function() {
+
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange(-1);
+
+            var state = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange();
+            expect( state ).toBe( -1 );
+
+            groupVisitsByPlaceAndTerritoryByDate.order( function(d) { return d.places.A.visits; } );
+
+            var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
+
+            expect( resultsAll[ 0 ].key ).toBe( "2012-01-13" );
+            expect( resultsAll[ 1 ].key ).toBe( "2012-01-11" );
+            expect( resultsAll[ 2 ].key ).toBe( "2012-01-15" );
+            expect( resultsAll[ 3 ].key ).toBe( "2012-01-12" );
+
+            expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 17 );
+            expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 3 );
+            expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 10 );
+            expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 0 );
+
+            expect( resultsAll[ 0 ].percentageChange ).toBe( Infinity );
+            expect( resultsAll[ 1 ].percentageChange ).toBe( 0 );
+            expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( -41.18 );
+            expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
+
+        });
+
+        it('treats other values as false', function() {
+
+            var state;
+
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange(16);
+            state = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange();
+            expect( state ).toBe( false );
+
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange(1);
+            state = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange();
+            expect( state ).toBe( 1 );
+
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange(-123);
+            state = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange();
+            expect( state ).toBe( false );
+
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange(16);
+            state = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange();
+            expect( state ).toBe( false );
+
+
+        });
+
+    });
+
+
     describe('all()', function() {
 
         it('calculates percentage change for a set of numbers', function() {
@@ -545,6 +709,40 @@ describe('accumulateGroupForPercentageChange', function() {
 
         });
 
+
+        it('supports ordering ascending by percentage change', function() {
+
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+            percentageChangeFakeGroup.orderByPercentageChange( 1 );
+
+            var results = percentageChangeFakeGroup.all();
+
+            expect( results[2].percentageChange ).toBe( 0 );
+            expect( results[4].percentageChange ).toBe( 50 );
+            expect( results[5].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[0].percentageChange ).toBe( -70 );
+            expect( results[6].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[3].percentageChange ).toBe( 20 );
+            expect( results[1].percentageChange ).toBeCloseTo( -41.66666666666667 );
+
+        });
+
+        it('supports ordering descending by percentage change', function() {
+
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+            percentageChangeFakeGroup.orderByPercentageChange( -1 );
+
+            var results = percentageChangeFakeGroup.all();
+
+            expect( results[4].percentageChange ).toBe( 0 );
+            expect( results[2].percentageChange ).toBe( 50 );
+            expect( results[1].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[6].percentageChange ).toBe( -70 );
+            expect( results[0].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[3].percentageChange ).toBe( 20 );
+            expect( results[5].percentageChange ).toBeCloseTo( -41.66666666666667 );
+
+        });
 
         it('supports filtering in crossfilter', function() {
 
@@ -945,36 +1143,62 @@ describe('accumulateGroupForPercentageChange', function() {
                 
             });
 
+            it('allows getting the % change of Place A with a custom valueAccessor ordered ascending by % change', function() {
+
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange( 1 );
+
+                groupVisitsByPlaceAndTerritoryByDate.order( function(d) { return d.places.A.visits; } );
+
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
+
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-15" );
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-12" );
+
+                expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 17 );
+                expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 3 );
+                expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 10 );
+                expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 0 );
+
+                expect( resultsAll[ 3 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].percentageChange ).toBeCloseTo( -41.18 );
+                expect( resultsAll[ 0 ].percentageChange ).toBe( -100 );
+
+            });
+
+            it('allows getting the % change of Place A with a custom valueAccessor ordered descending by % change', function() {
+
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange( -1 );
+
+                groupVisitsByPlaceAndTerritoryByDate.order( function(d) { return d.places.A.visits; } );
+
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-15" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-12" );
+
+                expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 17 );
+                expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 3 );
+                expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 10 );
+                expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( -41.18 );
+                expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
+
+            });
+
         });
 
     });
 
-    /**
-     *
-     * Actual, top order and values:
-
-     key: "2012-01-16"
-     value: 12
-
-     key: "2012-01-15"
-     value: 10
-
-     key: "2012-01-13"
-     value: 10
-
-     key: "2012-01-17"
-     value: 7
-
-     key: "2012-01-14"
-     value: 3
-
-     key: "2012-01-12"
-     value: 3
-
-     key: "2012-01-11"
-     value: 2
-
-     */
 
 
     describe('top()', function() {
@@ -1161,6 +1385,44 @@ describe('accumulateGroupForPercentageChange', function() {
         });
 
 
+
+        it('supports ordering ascending by percentage change', function() {
+
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+            percentageChangeFakeGroup.orderByPercentageChange( 1 );
+
+            var results = percentageChangeFakeGroup.top(Infinity);
+
+            expect( results[3].percentageChange ).toBe( 20 );
+            expect( results[5].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[6].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[1].percentageChange ).toBeCloseTo( -41.66666666666667 );
+            expect( results[0].percentageChange ).toBeCloseTo( -70 );
+            expect( results[4].percentageChange ).toBeCloseTo( 50 );
+            expect( results[2].percentageChange ).toBe( 0 );
+
+        });
+
+
+        it('supports ordering descending by percentage change', function() {
+
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+            percentageChangeFakeGroup.orderByPercentageChange( -1 );
+
+            var results = percentageChangeFakeGroup.top(Infinity);
+
+            expect( results[3].percentageChange ).toBe( 20 );
+            expect( results[1].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[0].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[5].percentageChange ).toBeCloseTo( -41.66666666666667 );
+            expect( results[6].percentageChange ).toBeCloseTo( -70 );
+            expect( results[2].percentageChange ).toBeCloseTo( 50 );
+            expect( results[4].percentageChange ).toBe( 0 );
+
+        });
+
+
+
         it('supports filtering in crossfilter', function() {
 
             var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
@@ -1305,7 +1567,6 @@ describe('accumulateGroupForPercentageChange', function() {
                 expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
 
             });
-
 
         });
 
@@ -1555,6 +1816,58 @@ describe('accumulateGroupForPercentageChange', function() {
                 expect( resultsAll[ 1 ].value.territories.B.percentageChange ).toBe( -100 );
                 expect( resultsAll[ 2 ].value.territories.B.percentageChange ).toBe( Infinity );
                 expect( resultsAll[ 3 ].value.territories.B.percentageChange ).toBe( -100 );
+
+            });
+
+            it('allows getting the % change of Place A with a custom valueAccessor ordered ascending by % change', function() {
+
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange( 1 );
+
+                groupVisitsByPlaceAndTerritoryByDate.order( function(d) { return d.places.A.visits; } );
+
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
+
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-15" );
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-12" );
+
+                expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 17 );
+                expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 3 );
+                expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 10 );
+                expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 0 );
+
+                expect( resultsAll[ 3 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].percentageChange ).toBeCloseTo( -41.18 );
+                expect( resultsAll[ 0 ].percentageChange ).toBe( -100 );
+
+            });
+
+            it('allows getting the % change of Place A with a custom valueAccessor ordered descending by % change', function() {
+
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange( -1 );
+
+                groupVisitsByPlaceAndTerritoryByDate.order( function(d) { return d.places.A.visits; } );
+
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
+
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-15" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-12" );
+
+                expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 17 );
+                expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 3 );
+                expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 10 );
+                expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( -41.18 );
+                expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
 
             });
 
