@@ -205,45 +205,14 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
             var _this = this;
             var cumulate = 0;
             var all = sourceGroup.all();
+
+            // Gather all values so we can compare against previous ones
             var fullDates = {};
-
-            var myDx = crossfilter( all );
-            var myDimensionDate = myDx.dimension( function( d ) {
-                return d.key;
-            } );
-            var myGroupingOnDate = myDimensionDate.group();
-
-            var reducer = myGroupingOnDate.reduce(
-                function ( p, v ) {
-                    var selDate = _this.keyAccessor()( v );
-                    var selValue = _this.valueAccessor()( v );
-
-                    if ( fullDates[ selDate ] ) {
-                        fullDates[ selDate ].myValue += selValue;
-                    } else {
-                        fullDates[ selDate ] = {
-                            myValue: selValue
-                        };
-                    }
-                    return p;
-                },
-                function ( p, v ) {
-                    var selDate = _this.keyAccessor()( v );
-                    var selValue = _this.valueAccessor()( v );
-
-                    if ( fullDates[ selDate ] ) {
-                        fullDates[ selDate ].quantity -= selValue;
-                    } else {
-                        delete fullDates[ selDate ];
-                    }
-                    return p;
-                },
-                function () {
-                    fullDates = {};
+            all.forEach(
+                function( d ) {
+                    fullDates[ _this.keyAccessor()( d ) ] = _this.valueAccessor()( d );
                 }
             );
-
-            reducer.all();
             var orderedDates = Object.keys( fullDates ).sort();
 
             var accumulatedAll = all.map( function( d, i, arr ) {
@@ -272,7 +241,7 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
 
                     if ( targetDayId ) {
                         var targetDayBlock = fullDates[ targetDayId ];
-                        var targetDayValue = targetDayBlock.myValue;
+                        var targetDayValue = targetDayBlock;
 
                         numsToAverage++;
                         thisCumulate += targetDayValue;
@@ -322,45 +291,14 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
             var _this = this;
             var cumulate = 0;
             var all = sourceGroup.top.apply( sourceGroup, arguments );
+
+            // Gather all values so we can compare against previous ones
             var fullDates = {};
-
-            var myDx = crossfilter( all );
-            var myDimensionDate = myDx.dimension( function( d ) {
-                return d.key;
-            } );
-            var myGroupingOnDate = myDimensionDate.group();
-
-            var reducer = myGroupingOnDate.reduce(
-                function ( p, v ) {
-                    var selDate = _this.keyAccessor()( v );
-                    var selValue = _this.valueAccessor()( v );
-
-                    if ( fullDates[ selDate ] ) {
-                        fullDates[ selDate ].myValue += selValue;
-                    } else {
-                        fullDates[ selDate ] = {
-                            myValue: selValue
-                        };
-                    }
-                    return p;
-                },
-                function ( p, v ) {
-                    var selDate = _this.keyAccessor()( v );
-                    var selValue = _this.valueAccessor()( v );
-
-                    if ( fullDates[ selDate ] ) {
-                        fullDates[ selDate ].quantity -= selValue;
-                    } else {
-                        delete fullDates[ selDate ];
-                    }
-                    return p;
-                },
-                function () {
-                    fullDates = {};
+            all.forEach(
+                function( d ) {
+                    fullDates[ _this.keyAccessor()( d ) ] = _this.valueAccessor()( d );
                 }
             );
-
-            reducer.all();
             var orderedDates = Object.keys( fullDates ).sort();
 
             var accumulatedAll = all.map( function( d, i, arr ) {
@@ -388,7 +326,7 @@ crossfilterMA.accumulateGroupForNDayMovingAverage = function( sourceGroup, ndays
 
                     if ( targetDayId ) {
                         var targetDayBlock = fullDates[ targetDayId ];
-                        var targetDayValue = targetDayBlock.myValue;
+                        var targetDayValue = targetDayBlock;
 
                         numsToAverage++;
                         thisCumulate += targetDayValue;
@@ -573,45 +511,14 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
         all: function () {
             var _this = this;
             var all = sourceGroup.all();
+
+            // Gather all values so we can compare against previous ones
             var fullDates = {};
-
-            var myDx = crossfilter( all );
-            var myDimensionDate = myDx.dimension( function( d ) {
-                return d.key;
-            } );
-            var myGroupingOnDate = myDimensionDate.group();
-
-            var reducer = myGroupingOnDate.reduce(
-                function ( p, v ) {
-                    var selDate = _this.keyAccessor()( v );
-                    var selValue = _this.valueAccessor()( v );
-
-                    if ( fullDates[ selDate ] ) {
-                        fullDates[ selDate ].myValue += selValue;
-                    } else {
-                        fullDates[ selDate ] = {
-                            myValue: selValue
-                        };
-                    }
-                    return p;
-                },
-                function ( p, v ) {
-                    var selDate = _this.keyAccessor()( v );
-                    var selValue = _this.valueAccessor()( v );
-
-                    if ( fullDates[ selDate ] ) {
-                        fullDates[ selDate ].quantity -= selValue;
-                    } else {
-                        delete fullDates[ selDate ];
-                    }
-                    return p;
-                },
-                function () {
-                    fullDates = {};
+            all.forEach(
+                function( d ) {
+                    fullDates[ _this.keyAccessor()( d ) ] = _this.valueAccessor()( d );
                 }
             );
-
-            reducer.all();
             var orderedDates = Object.keys( fullDates ).sort();
 
             var accumulatedAll = all.map( function( d, i, arr ) {
@@ -625,7 +532,7 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
 
                 if ( prevDayId ) {
                     var prevDayBlock = fullDates[ prevDayId ];
-                    prevDayValue = prevDayBlock.myValue;
+                    prevDayValue = prevDayBlock;
 
                     var diff = _this.valueAccessor()( thisDay ) - prevDayValue;
 
@@ -664,45 +571,14 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
 
             var _this = this;
             var all = sourceGroup.top.apply( sourceGroup, arguments );
+
+            // Gather all values so we can compare against previous ones
             var fullDates = {};
-
-            var myDx = crossfilter( all );
-            var myDimensionDate = myDx.dimension( function( d ) {
-                return d.key;
-            } );
-            var myGroupingOnDate = myDimensionDate.group();
-
-            var reducer = myGroupingOnDate.reduce(
-                function ( p, v ) {
-                    var selDate = _this.keyAccessor()( v );
-                    var selValue = _this.valueAccessor()( v );
-
-                    if ( fullDates[ selDate ] ) {
-                        fullDates[ selDate ].myValue += selValue;
-                    } else {
-                        fullDates[ selDate ] = {
-                            myValue: selValue
-                        };
-                    }
-                    return p;
-                },
-                function ( p, v ) {
-                    var selDate = _this.keyAccessor()( v );
-                    var selValue = _this.valueAccessor()( v );
-
-                    if ( fullDates[ selDate ] ) {
-                        fullDates[ selDate ].quantity -= selValue;
-                    } else {
-                        delete fullDates[ selDate ];
-                    }
-                    return p;
-                },
-                function () {
-                    fullDates = {};
+            all.forEach(
+                function( d ) {
+                    fullDates[ _this.keyAccessor()( d ) ] = _this.valueAccessor()( d );
                 }
             );
-
-            reducer.all();
             var orderedDates = Object.keys( fullDates ).sort();
 
             var accumulatedAll = all.map( function( d, i, arr ) {
@@ -716,7 +592,7 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
 
                 if ( prevDayId ) {
                     var prevDayBlock = fullDates[ prevDayId ];
-                    prevDayValue = prevDayBlock.myValue;
+                    prevDayValue = prevDayBlock;
 
                     var diff = _this.valueAccessor()( thisDay ) - prevDayValue;
 
