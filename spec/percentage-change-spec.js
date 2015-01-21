@@ -1854,6 +1854,131 @@ describe('accumulateGroupForPercentageChange', function() {
 
         });
 
+        describe('new needed features', function() {
+
+            it('supports easily finding a `rising star`', function() {
+
+                var dummyData = [
+                    { p: '01', person: 'Julie', commendations: 31 },
+                    { p: '01', person: 'Adam',  commendations: 26 },
+                    { p: '01', person: 'Sauron',commendations: 29 },
+                    { p: '02', person: 'Julie',commendations: 41 },
+                    { p: '02', person: 'Adam',commendations: 32 },
+                    { p: '02', person: 'Sauron',commendations: 51 },
+                    { p: '03', person: 'Julie',commendations: 16 },
+                    { p: '03', person: 'Adam',commendations: 37 },
+                    { p: '03', person: 'Sauron',commendations: 48 }
+                ];
+
+
+                var cx = crossfilter( dummyData );
+                var dimensionP = cx.dimension(function(d) { return d.p; } );
+                var dimensionPPerson = cx.dimension(function(d) { return d.p + '-' + d.person; } );
+                var dimensionPerson = cx.dimension(function(d) { return d.person; } );
+
+                var groupCommendationsOnP = dimensionP.group().reduceSum( function(d) { return d.commendations; } );
+                var groupCommendationsOnPPerson = dimensionPPerson.group().reduceSum( function(d) { return d.commendations; } );
+                var groupCommendationsOnPerson = dimensionPerson.group().reduceSum( function(d) { return d.commendations; } );
+
+                var knownPersons = dimensionPerson.group().all().map( function(d) { return d.key; } );
+
+                var groupProbablyIt = dimensionP.group().reduce(
+                    function (p,v) {
+
+                        p.commendations += v.commendations;
+
+                        if ( p.persons[ v.person ] ) {
+                            p.persons[ v.person ].commendations += v.commendations;
+                        } else {
+                            p.persons[ v.person ] = {
+                                commendations: v.commendations
+                            };
+                        }
+
+                        return p;
+                    },
+                    function (p,v) {
+
+                        p.commendations -= v.commendations;
+
+                        if ( p.persons[ v.person ] ) {
+                            p.persons[ v.person ].commendations -= v.commendations;
+                        } else {
+                            delete p.persons[ v.person ];
+                        }
+
+                        return p;
+                    },
+                    function (p,v) {
+                        var obj = {};
+
+                        obj.commendations = 0;
+                        obj.persons = {};
+
+                        // Make sure each place is represented, with at least 0
+                        var t = knownPersons.length,
+                            i = -1;
+                        while ( ++i < t ) {
+                            obj.persons[ knownPersons[i] ] = {
+                                commendations: 0
+                            };
+                        }
+
+                        return obj;
+                    }
+                ).order(
+                    function (p) {
+                        return p.p;
+                    }
+                );
+
+                var ma = crossfilterMa.accumulateGroupForPercentageChange( groupProbablyIt, true );
+
+                ma.valueAccessor( function(d) { return d.commendations; });
+
+                // todo methinks instead of passing a function we should pass a string of the key to look for
+                ma.iterationAccessKey = 'persons';
+
+                // default one? or don't use one if not set? ''?
+                //ma.iterationAccessor( function(d) { return d.value; } );
+
+
+
+                //ma.iterationAccessor( function(d) { return d.value.persons; } );
+                //ma.valueAccessor( function(d) { return d.commendations; });
+                debugger;
+
+                var risingStars = ma.top( Infinity );
+
+
+                expect( risingStars[0].key ).toBe( '01' );
+                expect( risingStars[0].persons[ 0 ].key ).toBe( 'Sauron' );
+                expect( risingStars[0].persons[ 0 ].percentageChange ).toBe( NaN );
+                expect( risingStars[0].persons[ 1 ].key ).toBe( 'Julie' );
+                expect( risingStars[0].persons[ 1 ].percentageChange ).toBe( NaN );
+                expect( risingStars[0].persons[ 2 ].key ).toBe( 'Adam' );
+                expect( risingStars[0].persons[ 2 ].percentageChange ).toBe( NaN );
+
+                expect( risingStars[1].key ).toBe( '02' );
+                expect( risingStars[1].persons[ 0 ].key ).toBe( 'Sauron' );
+                expect( risingStars[1].persons[ 0 ].percentageChange ).toBeCloseTo( 75.86 );
+                expect( risingStars[1].persons[ 1 ].key ).toBe( 'Julie' );
+                expect( risingStars[1].persons[ 1 ].percentageChange ).toBeCloseTo( 32.25 );
+                expect( risingStars[1].persons[ 2 ].key ).toBe( 'Adam' );
+                expect( risingStars[1].persons[ 2 ].percentageChange ).toBeCloseTo( 23.07 );
+
+                expect( risingStars[2].key ).toBe( '02' );
+                expect( risingStars[2].persons[ 0 ].key ).toBe( 'Sauron' );
+                expect( risingStars[2].persons[ 0 ].percentageChange ).toBeCloseTo( -5.88235294117647 );
+                expect( risingStars[2].persons[ 1 ].key ).toBe( 'Julie' );
+                expect( risingStars[2].persons[ 1 ].percentageChange ).toBeCloseTo( -60.97560975609756 );
+                expect( risingStars[2].persons[ 2 ].key ).toBe( 'Adam' );
+                expect( risingStars[2].persons[ 2 ].percentageChange ).toBeCloseTo( 15.625 );
+
+
+            });
+        });
+
     });
 
 
