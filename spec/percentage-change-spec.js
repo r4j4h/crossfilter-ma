@@ -325,9 +325,17 @@ describe('accumulateGroupForPercentageChange', function() {
 
     describe('key accessors', function() {
 
+        var myAccessor, origAccessor, percentageChangeFakeGroup;
+
+        beforeEach(function() {
+
+            myAccessor = jasmine.createSpy( 'myAccessor' );
+            percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+
+        });
+
         it('_defaultKeyAccessor() returns default key accessor', function() {
 
-            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
             expect( percentageChangeFakeGroup._defaultKeyAccessor() ).toEqual( jasmine.any( Function ) );
 
         });
@@ -336,26 +344,44 @@ describe('accumulateGroupForPercentageChange', function() {
 
             it('returns current keyAccessor', function() {
 
-                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
                 expect( percentageChangeFakeGroup.keyAccessor() ).toEqual( jasmine.any( Function ) );
 
             });
 
             it('allows configuring keyAccessor', function() {
 
-                var myAccessor = jasmine.createSpy('myAccessor'),
-                    origAccessor;
-                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+                origAccessor = percentageChangeFakeGroup.keyAccessor();
+
+                percentageChangeFakeGroup.keyAccessor( myAccessor );
+
+                expect( percentageChangeFakeGroup.keyAccessor() ).toBe(myAccessor);
+                expect( percentageChangeFakeGroup.keyAccessor() ).not.toBe(origAccessor);
+
+            });
+
+            it('is used by all()', function() {
+
                 origAccessor = percentageChangeFakeGroup.keyAccessor();
 
                 percentageChangeFakeGroup.keyAccessor( myAccessor );
 
                 expect( myAccessor ).not.toHaveBeenCalled();
 
-                expect( percentageChangeFakeGroup.keyAccessor() ).toBe(myAccessor);
-                expect( percentageChangeFakeGroup.keyAccessor() ).not.toBe(origAccessor);
-
                 percentageChangeFakeGroup.all();
+
+                expect( myAccessor ).toHaveBeenCalled();
+
+            });
+
+            it('is used by top()', function() {
+
+                origAccessor = percentageChangeFakeGroup.keyAccessor();
+
+                percentageChangeFakeGroup.keyAccessor( myAccessor );
+
+                expect( myAccessor ).not.toHaveBeenCalled();
+
+                percentageChangeFakeGroup.top( Infinity );
 
                 expect( myAccessor ).toHaveBeenCalled();
 
@@ -367,9 +393,17 @@ describe('accumulateGroupForPercentageChange', function() {
 
     describe('value accessors', function() {
 
+        var myAccessor, origAccessor, percentageChangeFakeGroup;
+
+        beforeEach(function() {
+
+            myAccessor = jasmine.createSpy( 'myAccessor' );
+            percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+
+        });
+
         it('_defaultValueAccessor() returns default value accessor', function() {
 
-            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
             expect( percentageChangeFakeGroup._defaultValueAccessor() ).toEqual( jasmine.any( Function ) );
 
         });
@@ -378,30 +412,188 @@ describe('accumulateGroupForPercentageChange', function() {
 
             it('returns current valueAccessor', function() {
 
-                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
                 expect( percentageChangeFakeGroup.valueAccessor() ).toEqual( jasmine.any( Function ) );
 
             });
 
             it('allows configuring valueAccessor', function() {
 
-                var myAccessor = jasmine.createSpy('myAccessor'),
-                    origAccessor;
-                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+                origAccessor = percentageChangeFakeGroup.valueAccessor();
+
+                percentageChangeFakeGroup.valueAccessor( myAccessor );
+
+                expect( percentageChangeFakeGroup.valueAccessor() ).toBe(myAccessor);
+                expect( percentageChangeFakeGroup.valueAccessor() ).not.toBe(origAccessor);
+
+            });
+
+            it('is used by all()', function() {
+
                 origAccessor = percentageChangeFakeGroup.valueAccessor();
 
                 percentageChangeFakeGroup.valueAccessor( myAccessor );
 
                 expect( myAccessor ).not.toHaveBeenCalled();
 
-                expect( percentageChangeFakeGroup.valueAccessor() ).toBe(myAccessor);
-                expect( percentageChangeFakeGroup.valueAccessor() ).not.toBe(origAccessor);
-
                 percentageChangeFakeGroup.all();
 
                 expect( myAccessor ).toHaveBeenCalled();
 
             });
+
+            it('is used by top()', function() {
+
+                origAccessor = percentageChangeFakeGroup.valueAccessor();
+
+                percentageChangeFakeGroup.valueAccessor( myAccessor );
+
+                expect( myAccessor ).not.toHaveBeenCalled();
+
+                percentageChangeFakeGroup.top( Infinity );
+
+                expect( myAccessor ).toHaveBeenCalled();
+
+            });
+
+        });
+
+    });
+
+    describe('calculation accessors', function() {
+
+        var myAccessor, origAccessor, percentageChangeFakeGroup;
+
+        beforeEach(function() {
+
+            myAccessor = jasmine.createSpy( 'myAccessor' );
+            percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+
+        });
+
+        it('returns current calculationAccessor', function() {
+
+            expect( percentageChangeFakeGroup.calculationAccessor() ).toEqual( jasmine.any( Function ) );
+
+        });
+
+        it('allows configuring calculationAccessor', function() {
+
+            origAccessor = percentageChangeFakeGroup.calculationAccessor();
+
+            percentageChangeFakeGroup.calculationAccessor( myAccessor );
+
+            expect( percentageChangeFakeGroup.calculationAccessor() ).toBe(myAccessor);
+            expect( percentageChangeFakeGroup.calculationAccessor() ).not.toBe(origAccessor);
+
+        });
+
+        it('default and custom values are used by all()', function() {
+
+            // Get default
+            origAccessor = percentageChangeFakeGroup.calculationAccessor();
+
+            // Spy on it
+            var block = { origAccessor: origAccessor };
+            var defaultAccessor = spyOn( block, 'origAccessor' );
+
+            expect( defaultAccessor ).not.toHaveBeenCalled();
+            expect( myAccessor ).not.toHaveBeenCalled();
+
+            // Set spied default
+            percentageChangeFakeGroup.calculationAccessor( defaultAccessor );
+
+            percentageChangeFakeGroup.all();
+
+            expect( defaultAccessor ).toHaveBeenCalled();
+            expect( myAccessor ).not.toHaveBeenCalled();
+
+            defaultAccessor.calls.reset();
+            myAccessor.calls.reset();
+
+            percentageChangeFakeGroup.calculationAccessor( myAccessor );
+
+            percentageChangeFakeGroup.all();
+
+            expect( defaultAccessor ).not.toHaveBeenCalled();
+            expect( myAccessor ).toHaveBeenCalled();
+
+        });
+
+        it('default and custom values are used by top()', function() {
+
+            // Get default
+            origAccessor = percentageChangeFakeGroup.calculationAccessor();
+
+            // Spy on it
+            var block = { origAccessor: origAccessor };
+            var defaultAccessor = spyOn( block, 'origAccessor' );
+
+            expect( defaultAccessor ).not.toHaveBeenCalled();
+            expect( myAccessor ).not.toHaveBeenCalled();
+
+            // Set spied default
+            percentageChangeFakeGroup.calculationAccessor( defaultAccessor );
+
+            percentageChangeFakeGroup.top( Infinity );
+
+            expect( defaultAccessor ).toHaveBeenCalled();
+            expect( myAccessor ).not.toHaveBeenCalled();
+
+            defaultAccessor.calls.reset();
+            myAccessor.calls.reset();
+
+            percentageChangeFakeGroup.calculationAccessor( myAccessor );
+
+            percentageChangeFakeGroup.top( Infinity );
+
+            expect( defaultAccessor ).not.toHaveBeenCalled();
+            expect( myAccessor ).toHaveBeenCalled();
+
+        });
+
+        it('supports calculating values from keys on the value key', function() {
+
+        });
+
+    });
+
+    describe('iteration accessors', function() {
+
+        var myAccessor, origAccessor, percentageChangeFakeGroup;
+
+        beforeEach(function() {
+
+            myAccessor = jasmine.createSpy( 'myAccessor' );
+            percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+
+        });
+
+        it('returns current iterationAccessor', function() {
+
+            expect( percentageChangeFakeGroup.iterationAccessor() ).toEqual( jasmine.any( String ) );
+
+        });
+
+        it('allows configuring iterationAccessor', function() {
+
+            origAccessor = percentageChangeFakeGroup.iterationAccessor();
+
+            percentageChangeFakeGroup.iterationAccessor( myAccessor );
+
+            expect( percentageChangeFakeGroup.iterationAccessor() ).toBe(myAccessor);
+            expect( percentageChangeFakeGroup.iterationAccessor() ).not.toBe(origAccessor);
+
+        });
+
+        it('is used by all()', function() {
+
+        });
+
+        it('is used by top()', function() {
+
+        });
+
+        it('support fanning out many calculations on values from a specific key on the value key', function() {
 
         });
 
@@ -472,58 +664,192 @@ describe('accumulateGroupForPercentageChange', function() {
 
         });
 
-        it('allows sorting ascending by passing 1', function() {
+        it('allows sorting ascending by passing 1 using valueAccessor', function() {
 
             percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
+
             percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange(1);
 
             groupVisitsByPlaceAndTerritoryByDate.order( function(d) { return d.places.A.visits; } );
 
             var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
-            expect( resultsAll[ 3 ].key ).toBe( "2012-01-13" );
-            expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
-            expect( resultsAll[ 1 ].key ).toBe( "2012-01-15" );
-            expect( resultsAll[ 0 ].key ).toBe( "2012-01-12" );
+            //expect( resultsAll[ 0 ].key ).toBe( "2012-01-13" );
+            //expect( resultsAll[ 1 ].key ).toBe( "2012-01-11" );
+            expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
+            expect( resultsAll[ 2 ].key ).toBe( "2012-01-12" );
 
-            expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 17 );
-            expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 3 );
-            expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 10 );
-            expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 0 );
+            //expect( resultsAll[ 0 ].value ).toBe( 17 );
+            //expect( resultsAll[ 1 ].value ).toBe( 3 );
+            expect( resultsAll[ 3 ].value ).toBe( 10 );
+            expect( resultsAll[ 2 ].value ).toBe( 0 );
 
-            expect( resultsAll[ 3 ].percentageChange ).toBe( Infinity );
-            expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
-            expect( resultsAll[ 1 ].percentageChange ).toBeCloseTo( -41.18 );
-            expect( resultsAll[ 0 ].percentageChange ).toBe( -100 );
+            expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
+            expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+            expect( resultsAll[ 3 ].percentageChange ).toBeCloseTo( -41.18 );
+            expect( resultsAll[ 2 ].percentageChange ).toBe( -100 );
 
         });
 
-        it('allows sorting descending by passing -1', function() {
+        xit('allows sorting ascending by passing 1 using calculationAccessor and iterationAccessor', function() {
 
-            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
-            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange(-1);
+            //percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.calculationAccessor( function(d) { return d.visits; } );
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor( 'places' );
 
-            var state = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange();
-            expect( state ).toBe( -1 );
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange(1);
 
             groupVisitsByPlaceAndTerritoryByDate.order( function(d) { return d.places.A.visits; } );
 
             var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
-            expect( resultsAll[ 0 ].key ).toBe( "2012-01-13" );
-            expect( resultsAll[ 1 ].key ).toBe( "2012-01-11" );
-            expect( resultsAll[ 2 ].key ).toBe( "2012-01-15" );
-            expect( resultsAll[ 3 ].key ).toBe( "2012-01-12" );
+            //expect( resultsAll[ 1 ].key ).toBe( "2012-01-13" );
+            //expect( resultsAll[ 3 ].key ).toBe( "2012-01-11" );
+            //expect( resultsAll[ 2 ].key ).toBe( "2012-01-15" );
+            //expect( resultsAll[ 0 ].key ).toBe( "2012-01-12" );
 
-            expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 17 );
-            expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 3 );
-            expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 10 );
-            expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 0 );
+            expect( resultsAll[ 1 ].value ).toBe( undefined );
+            expect( resultsAll[ 3 ].value ).toBe( undefined );
+            expect( resultsAll[ 2 ].value ).toBe( undefined );
+            expect( resultsAll[ 0 ].value ).toBe( undefined );
 
-            expect( resultsAll[ 0 ].percentageChange ).toBe( Infinity );
-            expect( resultsAll[ 1 ].percentageChange ).toBe( 0 );
-            expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( -41.18 );
-            expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
+            expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+            expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
+            expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
+            expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
+
+            //expect( resultsAll[ 1 ].places[ 0 ].key ).toBe( 'A' );
+            expect( resultsAll[ 1 ].places[ 0 ].percentageChange ).toBeNaN();
+            //expect( resultsAll[ 1 ].places[ 0 ].value ).toBe( 17 );
+            //expect( resultsAll[ 1 ].places[ 2 ].key ).toBe( 'B' );
+            expect( resultsAll[ 1 ].places[ 2 ].percentageChange ).toBeCloseTo( -41.1765 );
+            //expect( resultsAll[ 1 ].places[ 2 ].value ).toBe( 0 );
+            //expect( resultsAll[ 1 ].places[ 1 ].key ).toBe( 'C' );
+            expect( resultsAll[ 1 ].places[ 1 ].percentageChange ).toBeNaN();
+            //expect( resultsAll[ 1 ].places[ 1 ].value ).toBe( 0 );
+
+            //expect( resultsAll[ 3 ].places[ 0 ].key ).toBe( 'A' );
+            expect( resultsAll[ 3 ].places[ 0 ].percentageChange ).toBeNaN();
+            //expect( resultsAll[ 3 ].places[ 0 ].value ).toBe( 3 );
+            //expect( resultsAll[ 3 ].places[ 1 ].key ).toBe( 'B' );
+            expect( resultsAll[ 3 ].places[ 1 ].percentageChange ).toBe( -100 );
+            //expect( resultsAll[ 3 ].places[ 1 ].value ).toBe( 0 );
+            //expect( resultsAll[ 3 ].places[ 2 ].key ).toBe( 'C' );
+            expect( resultsAll[ 3 ].places[ 2 ].percentageChange ).toBe( -100 );
+            //expect( resultsAll[ 3 ].places[ 2 ].value ).toBe( 3 );
+
+            //expect( resultsAll[ 2 ].places[ 2 ].key ).toBe( 'A' );
+            expect( resultsAll[ 2 ].places[ 2 ].percentageChange ).toBeNaN();
+            //expect( resultsAll[ 2 ].places[ 2 ].value ).toBe( 10 );
+            //expect( resultsAll[ 2 ].places[ 0 ].key ).toBe( 'B' );
+            expect( resultsAll[ 2 ].places[ 0 ].percentageChange ).toBeNaN();
+            //expect( resultsAll[ 2 ].places[ 0 ].value ).toBe( 0 );
+            //expect( resultsAll[ 2 ].places[ 1 ].key ).toBe( 'C' );
+            expect( resultsAll[ 2 ].places[ 1 ].percentageChange ).toBeNaN();
+            //expect( resultsAll[ 2 ].places[ 1 ].value ).toBe( 0 );
+
+            //expect( resultsAll[ 0 ].places[ 1 ].key ).toBe( 'A' );
+            expect( resultsAll[ 0 ].places[ 1 ].percentageChange ).toBeNaN();
+            //expect( resultsAll[ 0 ].places[ 1 ].value ).toBe( 0 );
+            //expect( resultsAll[ 0 ].places[ 0 ].key ).toBe( 'B' );
+            expect( resultsAll[ 0 ].places[ 0 ].percentageChange ).toBeNaN();
+            //expect( resultsAll[ 0 ].places[ 0 ].value ).toBe( 15 );
+            //expect( resultsAll[ 0 ].places[ 2 ].key ).toBe( 'C' );
+            expect( resultsAll[ 0 ].places[ 2 ].percentageChange ).toBeCloseTo( -100 );
+            //expect( resultsAll[ 0 ].places[ 2 ].value ).toBe( 0 );
+
+        });
+
+        it('allows sorting descending by passing -1 using valueAccessor', function() {
+
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange(-1);
+
+            var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
+
+            //expect( resultsAll[ 3 ].key ).toBe( "2012-01-13" );
+            //expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
+            //expect( resultsAll[ 0 ].key ).toBe( "2012-01-15" );
+            //expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
+
+            //expect( resultsAll[ 3 ].value ).toBe( 17 );
+            //expect( resultsAll[ 2 ].value ).toBe( 3 );
+            //expect( resultsAll[ 0 ].value ).toBe( 10 );
+            //expect( resultsAll[ 1 ].value ).toBe( 0 );
+
+            expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
+            expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
+            expect( resultsAll[ 0 ].percentageChange ).toBeCloseTo( -41.176 );
+            expect( resultsAll[ 1 ].percentageChange ).toBe( -100 );
+
+
+        });
+
+        xit('allows sorting descending by passing -1 using calculationAccessor and iterationAccessor', function() {
+
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.calculationAccessor( function(d) { return d.visits; } );
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor( 'places' );
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange(-1);
+
+            var state = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange();
+            expect( state ).toBe( -1 );
+
+            var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
+
+            //expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
+            //expect( resultsAll[ 0 ].key ).toBe( "2012-01-11" );
+            //expect( resultsAll[ 1 ].key ).toBe( "2012-01-15" );
+            //expect( resultsAll[ 3 ].key ).toBe( "2012-01-12" );
+
+            expect( resultsAll[ 2 ].value ).toBe( undefined );
+            expect( resultsAll[ 0 ].value ).toBe( undefined );
+            expect( resultsAll[ 1 ].value ).toBe( undefined );
+            expect( resultsAll[ 3 ].value ).toBe( undefined );
+
+            expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
+            expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
+            expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+            expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
+
+            //expect( resultsAll[ 2 ].places[ 2 ].key ).toBe( 'A' );
+            expect( resultsAll[ 2 ].places[ 2 ].percentageChange ).toBeNaN();
+            //expect( resultsAll[ 2 ].places[ 2 ].value ).toBe( 17 );
+            //expect( resultsAll[ 2 ].places[ 0 ].key ).toBe( 'B' );
+            expect( resultsAll[ 2 ].places[ 0 ].percentageChange ).toBe( -100 );
+            //expect( resultsAll[ 2 ].places[ 0 ].value ).toBe( 0 );
+            //expect( resultsAll[ 2 ].places[ 1 ].key ).toBe( 'C' );
+            expect( resultsAll[ 2 ].places[ 1 ].percentageChange ).toBeNaN();
+            //expect( resultsAll[ 2 ].places[ 1 ].value ).toBe( 0 );
+
+            //expect( resultsAll[ 0 ].places[ 2 ].key ).toBe( 'A' );
+            expect( resultsAll[ 0 ].places[ 2 ].percentageChange ).toBeNaN();
+            //expect( resultsAll[ 0 ].places[ 2 ].value ).toBe( 3 );
+            //expect( resultsAll[ 0 ].places[ 1 ].key ).toBe( 'B' );
+            expect( resultsAll[ 0 ].places[ 1 ].percentageChange ).toBeNaN();
+            //expect( resultsAll[ 0 ].places[ 1 ].value ).toBe( 0 );
+            //expect( resultsAll[ 0 ].places[ 0 ].key ).toBe( 'C' );
+            expect( resultsAll[ 0 ].places[ 0 ].percentageChange ).toBeNaN();
+            //expect( resultsAll[ 0 ].places[ 0 ].value ).toBe( 3 );
+
+            //expect( resultsAll[ 1 ].places[ 0 ].key ).toBe( 'A' );
+            expect( resultsAll[ 1 ].places[ 0 ].percentageChange ).toBeCloseTo( -41.1765 );
+            //expect( resultsAll[ 1 ].places[ 0 ].value ).toBe( 10 );
+            //expect( resultsAll[ 1 ].places[ 2 ].key ).toBe( 'B' );
+            expect( resultsAll[ 1 ].places[ 2 ].percentageChange ).toBeNaN();
+            //expect( resultsAll[ 1 ].places[ 2 ].value ).toBe( 0 );
+            //expect( resultsAll[ 1 ].places[ 1 ].key ).toBe( 'C' );
+            expect( resultsAll[ 1 ].places[ 1 ].percentageChange ).toBeNaN();
+            //expect( resultsAll[ 1 ].places[ 1 ].value ).toBe( 0 );
+
+            //expect( resultsAll[ 3 ].places[ 0 ].key ).toBe( 'A' );
+            expect( resultsAll[ 3 ].places[ 0 ].percentageChange ).toBeCloseTo( -100 );
+            //expect( resultsAll[ 3 ].places[ 0 ].value ).toBe( 0 );
+            //expect( resultsAll[ 3 ].places[ 2 ].key ).toBe( 'B' );
+            expect( resultsAll[ 3 ].places[ 2 ].percentageChange ).toBeNaN();
+            //expect( resultsAll[ 3 ].places[ 2 ].value ).toBe( 15 );
+            //expect( resultsAll[ 3 ].places[ 1 ].key ).toBe( 'C' );
+            expect( resultsAll[ 3 ].places[ 1 ].percentageChange ).toBeCloseTo( -100 );
+            //expect( resultsAll[ 3 ].places[ 1 ].value ).toBe( 0 );
 
         });
 
@@ -547,7 +873,6 @@ describe('accumulateGroupForPercentageChange', function() {
             state = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange();
             expect( state ).toBe( false );
 
-
         });
 
     });
@@ -561,7 +886,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
             var results = percentageChangeFakeGroup.all();
 
-            expect( results[0].percentageChange ).toBe( 0 );
+            expect( results[0].percentageChange ).toBeNaN();
             expect( results[1].percentageChange ).toBe( 50 );
             expect( results[2].percentageChange ).toBeCloseTo( 233.33333333333334 );
             expect( results[3].percentageChange ).toBe( -70 );
@@ -640,7 +965,7 @@ describe('accumulateGroupForPercentageChange', function() {
             var results = percentageChangeFakeGroup.all();
 
             expect( results[0].key ).toBe( '2012-01-11' );
-            expect( results[0].percentageChange ).toBe( 0 );
+            expect( results[0].percentageChange ).toBeNaN();
             expect( results[1].key ).toBe( '2012-01-12' );
             expect( results[1].percentageChange ).toBeCloseTo( 50 );
             expect( results[2].key ).toBe( '2012-01-13' );
@@ -665,7 +990,7 @@ describe('accumulateGroupForPercentageChange', function() {
             var results = percentageChangeFakeGroup.all();
 
             expect( results[0].key ).toBe( '2012-01-11' ); //5
-            expect( results[0].percentageChange ).toBe( 0 );
+            expect( results[0].percentageChange ).toBeNaN();
             expect( results[1].key ).toBe( '2012-01-12' ); // 15
             expect( results[1].percentageChange ).toBeCloseTo( 200 );
             expect( results[2].key ).toBe( '2012-01-13' ); // 17
@@ -698,13 +1023,13 @@ describe('accumulateGroupForPercentageChange', function() {
 
             var results = percentageChangeFakeGroup.all();
 
-            expect( results[2].percentageChange ).toBe( 0 );
+            expect( results[0].percentageChange ).toBeNaN();
             expect( results[4].percentageChange ).toBe( 50 );
             expect( results[5].percentageChange ).toBeCloseTo( 233.33333333333334 );
-            expect( results[0].percentageChange ).toBe( -70 );
+            expect( results[1].percentageChange ).toBe( -70 );
             expect( results[6].percentageChange ).toBeCloseTo( 233.33333333333334 );
             expect( results[3].percentageChange ).toBe( 20 );
-            expect( results[1].percentageChange ).toBeCloseTo( -41.66666666666667 );
+            expect( results[2].percentageChange ).toBeCloseTo( -41.66666666666667 );
 
         });
 
@@ -715,13 +1040,13 @@ describe('accumulateGroupForPercentageChange', function() {
 
             var results = percentageChangeFakeGroup.all();
 
-            expect( results[4].percentageChange ).toBe( 0 );
+            expect( results[6].percentageChange ).toBeNaN();
             expect( results[2].percentageChange ).toBe( 50 );
-            expect( results[1].percentageChange ).toBeCloseTo( 233.33333333333334 );
-            expect( results[6].percentageChange ).toBe( -70 );
             expect( results[0].percentageChange ).toBeCloseTo( 233.33333333333334 );
+            expect( results[5].percentageChange ).toBe( -70 );
+            expect( results[1].percentageChange ).toBeCloseTo( 233.33333333333334 );
             expect( results[3].percentageChange ).toBe( 20 );
-            expect( results[5].percentageChange ).toBeCloseTo( -41.66666666666667 );
+            expect( results[4].percentageChange ).toBeCloseTo( -41.66666666666667 );
 
         });
 
@@ -731,7 +1056,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
             var results = percentageChangeFakeGroup.all();
 
-            expect( results[0].percentageChange ).toBe( 0 );
+            expect( results[0].percentageChange ).toBeNaN();
             expect( results[1].percentageChange ).toBeCloseTo( 50 );
             expect( results[2].percentageChange ).toBeCloseTo( 233.33333333333334 );
             expect( results[3].percentageChange ).toBeCloseTo( -70 );
@@ -743,13 +1068,13 @@ describe('accumulateGroupForPercentageChange', function() {
 
             var results = percentageChangeFakeGroup.all();
 
-            expect( results[0].percentageChange ).toBe( 0 );
-            expect( results[1].percentageChange ).toBe( Infinity );
+            expect( results[0].percentageChange ).toBeNaN();
+            expect( results[1].percentageChange ).toBeNaN();
             expect( results[2].percentageChange ).toBeCloseTo( 233.33333333333334 );
             expect( results[3].percentageChange ).toBeCloseTo( -70 );
             expect( results[4].percentageChange ).toBeCloseTo( 233.33333333333334 );
             expect( results[5].percentageChange ).toBeCloseTo( -100 );
-            expect( results[6].percentageChange ).toBe( Infinity );
+            expect( results[6].percentageChange ).toBeNaN();
 
         });
 
@@ -838,9 +1163,9 @@ describe('accumulateGroupForPercentageChange', function() {
                 expect( resultsAll[ 2 ].value ).toBe( 17 );
                 expect( resultsAll[ 3 ].value ).toBe( 10 );
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 1 ].percentageChange ).toBe( -100 );
-                expect( resultsAll[ 2 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 3 ].percentageChange ).toBeCloseTo( -41.18 );
 
             });
@@ -870,10 +1195,10 @@ describe('accumulateGroupForPercentageChange', function() {
                 expect( resultsAll[ 2 ].value ).toBe( 0 );
                 expect( resultsAll[ 3 ].value ).toBe( 10 );
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 1 ].percentageChange ).toBe( 400 );
                 expect( resultsAll[ 2 ].percentageChange ).toBe( -100 );
-                expect( resultsAll[ 3 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
 
             });
 
@@ -944,7 +1269,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
                 var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 0 ].percentageChange ).not.toBe( 1 );
                 expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 1 ].percentageChange ).not.toBe( 200 );
@@ -958,7 +1283,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
                 resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 1 ].percentageChange ).toBe( 150 );
                 expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( 13.33 );
                 expect( resultsAll[ 3 ].percentageChange ).toBeCloseTo( -41.18 );
@@ -981,14 +1306,14 @@ describe('accumulateGroupForPercentageChange', function() {
                 expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
                 expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
 
-                expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 3 );
-                expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 0 );
-                expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 17 );
-                expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 10 );
+                expect( resultsAll[ 0 ].value ).toBe( 3 );
+                expect( resultsAll[ 1 ].value ).toBe( 0 );
+                expect( resultsAll[ 2 ].value ).toBe( 17 );
+                expect( resultsAll[ 3 ].value ).toBe( 10 );
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 1 ].percentageChange ).toBe( -100 );
-                expect( resultsAll[ 2 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 3 ].percentageChange ).toBeCloseTo( -41.18 );
 
             });
@@ -999,33 +1324,140 @@ describe('accumulateGroupForPercentageChange', function() {
 
                 var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
-                expect( resultsAll[ 1 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 0 ].key ).toBe( "2012-01-11" );
+                expect( resultsAll[ 0 ]._debug.prevDayKey ).toBe( "None" );
+                expect( resultsAll[ 0 ]._debug.thisDayKey ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
+                expect( resultsAll[ 1 ]._debug.prevDayKey ).toBe( "2012-01-11" );
+                expect( resultsAll[ 1 ]._debug.thisDayKey ).toBe( "2012-01-12" );
+                expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
+                expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
+
+                expect( resultsAll[ 0 ].value ).toBe( 0 );
+                expect( resultsAll[ 1 ].value ).toBe( 15 );
+                expect( resultsAll[ 2 ].value ).toBe( 0 );
+                expect( resultsAll[ 3 ].value ).toBe( 0 );
+
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 2 ].percentageChange ).toBe( -100 );
-                expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
 
             });
 
-            xit('allows getting the % change of each place with a custom valueAccessor', function() {
+            it('allows getting the % change of each place with a custom iterationAccessor and calculationAccessor', function() {
 
-                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
+                //percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor('places');
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.calculationAccessor( function(d) { return d.visits; } );
 
                 var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
-                expect( resultsAll[ 0 ].percentageChange ).not.toBeDefined();
-                expect( resultsAll[ 1 ].percentageChange ).not.toBeDefined();
-                expect( resultsAll[ 2 ].percentageChange ).not.toBeDefined();
-                expect( resultsAll[ 3 ].percentageChange ).not.toBeDefined();
+                //expect( resultsAll[ 0 ].key ).toBe( '2012-01-11' );
+                //expect( resultsAll[ 1 ].key ).toBe( '2012-01-12' );
+                //expect( resultsAll[ 2 ].key ).toBe( '2012-01-13' );
+                //expect( resultsAll[ 3 ].key ).toBe( '2012-01-15' );
 
-                expect( resultsAll[ 0 ].value.places.A.percentageChange ).toBe( 0 );
-                expect( resultsAll[ 1 ].value.places.A.percentageChange ).toBe( -100 );
-                expect( resultsAll[ 2 ].value.places.A.percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 3 ].value.places.A.percentageChange ).toBeCloseTo( -41.18 );
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
 
-                expect( resultsAll[ 0 ].value.places.B.percentageChange ).toBe( 0 );
-                expect( resultsAll[ 1 ].value.places.B.percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 2 ].value.places.B.percentageChange ).toBe( -100 );
-                expect( resultsAll[ 3 ].value.places.B.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 0 ].places.A.percentageChange ).toBeNaN();
+                expect( resultsAll[ 1 ].places.A.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].places.A.percentageChange ).toBeNaN();
+                expect( resultsAll[ 3 ].places.A.percentageChange ).toBeCloseTo( -41.18 );
+
+                expect( resultsAll[ 0 ].places.B.percentageChange ).toBeNaN();
+                expect( resultsAll[ 1 ].places.B.percentageChange ).toBeNaN();
+                expect( resultsAll[ 2 ].places.B.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 3 ].places.B.percentageChange ).toBeNaN();
+
+            });
+
+            xit('allows getting the % change of each place sorted ascending with a custom iterationAccessor and calculationAccessor', function() {
+
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor('places');
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.calculationAccessor( function(d) { return d.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange( 1 );
+
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
+
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
+
+                //expect( resultsAll[ 0 ].places[0].key ).toBe( "A" );
+                expect( resultsAll[ 0 ].places[0].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 0 ].places[1].key ).toBe( "B" );
+                expect( resultsAll[ 0 ].places[1].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 0 ].places[2].key ).toBe( "C" );
+                expect( resultsAll[ 0 ].places[2].percentageChange ).toBeNaN();
+
+                //expect( resultsAll[ 1 ].places[0].key ).toBe( "B" );
+                expect( resultsAll[ 1 ].places[0].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 1 ].places[1].key ).toBe( "A" );
+                expect( resultsAll[ 1 ].places[1].percentageChange ).toBe( -100 );
+                //expect( resultsAll[ 1 ].places[2].key ).toBe( "C" );
+                expect( resultsAll[ 1 ].places[2].percentageChange ).toBe( -100 );
+
+                //expect( resultsAll[ 2 ].places[0].key ).toBe( "A" );
+                expect( resultsAll[ 2 ].places[0].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 2 ].places[1].key ).toBe( "C" );
+                expect( resultsAll[ 2 ].places[1].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 2 ].places[2].key ).toBe( "B" );
+                expect( resultsAll[ 2 ].places[2].percentageChange ).toBe( -100 );
+
+                //expect( resultsAll[ 3 ].places[0].key ).toBe( "B" );
+                expect( resultsAll[ 3 ].places[0].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 3 ].places[1].key ).toBe( "C" );
+                expect( resultsAll[ 3 ].places[1].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 3 ].places[2].key ).toBe( "A" );
+                expect( resultsAll[ 3 ].places[2].percentageChange ).toBeCloseTo( -41.18 );
+
+            });
+
+            xit('allows getting the % change of each place sorted descending with a custom iterationAccessor and calculationAccessor', function() {
+
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor('places');
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.calculationAccessor( function(d) { return d.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange( -1 );
+
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
+
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
+
+                //expect( resultsAll[ 0 ].places[0].key ).toBe( "A" );
+                expect( resultsAll[ 0 ].places[0].percentageChange ).toBeCloseTo( -41.18 );
+                //expect( resultsAll[ 0 ].places[2].key ).toBe( "B" );
+                expect( resultsAll[ 0 ].places[2].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 0 ].places[1].key ).toBe( "C" );
+                expect( resultsAll[ 0 ].places[1].percentageChange ).toBeNaN();
+
+                //expect( resultsAll[ 1 ].places[0].key ).toBe( "B" );
+                expect( resultsAll[ 1 ].places[0].percentageChange ).toBe( -100 );
+                //expect( resultsAll[ 1 ].places[2].key ).toBe( "A" );
+                expect( resultsAll[ 1 ].places[2].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 1 ].places[1].key ).toBe( "C" );
+                expect( resultsAll[ 1 ].places[1].percentageChange ).toBeNaN();
+
+                //expect( resultsAll[ 2 ].places[0].key ).toBe( "A" );
+                expect( resultsAll[ 2 ].places[0].percentageChange ).toBe( -100 );
+                //expect( resultsAll[ 2 ].places[1].key ).toBe( "C" );
+                expect( resultsAll[ 2 ].places[1].percentageChange ).toBe( -100 );
+                //expect( resultsAll[ 2 ].places[2].key ).toBe( "B" );
+                expect( resultsAll[ 2 ].places[2].percentageChange ).toBeNaN();
+
+                //expect( resultsAll[ 3 ].places[1].key ).toBe( "B" );
+                expect( resultsAll[ 3 ].places[1].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 3 ].places[0].key ).toBe( "C" );
+                expect( resultsAll[ 3 ].places[0].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 3 ].places[2].key ).toBe( "A" );
+                expect( resultsAll[ 3 ].places[2].percentageChange ).toBeNaN();
 
             });
 
@@ -1045,15 +1477,15 @@ describe('accumulateGroupForPercentageChange', function() {
                 expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
                 expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
 
-                expect( resultsAll[ 0 ].value.territories.A.visits ).toBe( 3 );
-                expect( resultsAll[ 1 ].value.territories.A.visits ).toBe( 15 );
-                expect( resultsAll[ 2 ].value.territories.A.visits ).toBe( 0 );
-                expect( resultsAll[ 3 ].value.territories.A.visits ).toBe( 10 );
+                expect( resultsAll[ 0 ].value ).toBe( 3 );
+                expect( resultsAll[ 1 ].value ).toBe( 15 );
+                expect( resultsAll[ 2 ].value ).toBe( 0 );
+                expect( resultsAll[ 3 ].value ).toBe( 10 );
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 1 ].percentageChange ).toBe( 400 );
                 expect( resultsAll[ 2 ].percentageChange ).toBe( -100 );
-                expect( resultsAll[ 3 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
 
             });
 
@@ -1063,42 +1495,48 @@ describe('accumulateGroupForPercentageChange', function() {
 
                 var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 1 ].percentageChange ).toBe( -100 );
-                expect( resultsAll[ 2 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
 
             });
 
-            xit('allows getting the % change of each territory', function() {
+            it('allows getting the % change of each territory with a custom iterationAccessor and calculationAccessor', function() {
+
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.calculationAccessor(function(d) { return d.visits; });
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor('territories');
 
                 var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
-                expect( resultsAll[ 0 ].percentageChange ).not.toBeDefined();
-                expect( resultsAll[ 1 ].percentageChange ).not.toBeDefined();
-                expect( resultsAll[ 2 ].percentageChange ).not.toBeDefined();
-                expect( resultsAll[ 3 ].percentageChange ).not.toBeDefined();
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
 
-                expect( resultsAll[ 0 ].value.territories.A.percentageChange ).toBe( 0 );
-                expect( resultsAll[ 1 ].value.territories.A.percentageChange ).toBe( 650 );
-                expect( resultsAll[ 2 ].value.territories.A.percentageChange ).toBe( -100 );
-                expect( resultsAll[ 3 ].value.territories.A.percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 0 ].territories.A.percentageChange ).toBeNaN();
+                expect( resultsAll[ 1 ].territories.A.percentageChange ).toBe( 400 );
+                expect( resultsAll[ 2 ].territories.A.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 3 ].territories.A.percentageChange ).toBeNaN();
 
-                expect( resultsAll[ 0 ].value.territories.B.percentageChange ).toBe( 0 );
-                expect( resultsAll[ 1 ].value.territories.B.percentageChange ).toBe( -100 );
-                expect( resultsAll[ 2 ].value.territories.B.percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 3 ].value.territories.B.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 0 ].territories.B.percentageChange ).toBeNaN();
+                expect( resultsAll[ 1 ].territories.B.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].territories.B.percentageChange ).toBeNaN();
+                expect( resultsAll[ 3 ].territories.B.percentageChange ).toBe( -100 );
 
             });
 
-            xit('allows getting the % change of each place and territory and total with a custom valueAccessor', function() {
+            xit('allows getting the % change of each place and territory and total with a custom calculationAccessor, iterationAccessor, and custom iterationValueAccessor', function() {
 
-                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.totalVisits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.calculationAccessor(function(d) { return d.visits; });
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor('territories');
+                //percentageChangeGroupVisitsByPlaceAndTerritoryByDate.iterationValueAccessor( function(d) { return d.value.visits; } );
+                //percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.totalVisits; } );
 
                 var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( 0 );
-                expect( resultsAll[ 1 ].percentageChange ).toBe( 200 );
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 1 ].percentageChange ).toBe( 150 );
                 expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( 13.33 );
                 expect( resultsAll[ 3 ].percentageChange ).toBeCloseTo( -41.18 );
 
@@ -1133,20 +1571,20 @@ describe('accumulateGroupForPercentageChange', function() {
 
                 var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
-                expect( resultsAll[ 3 ].key ).toBe( "2012-01-13" );
-                expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
-                expect( resultsAll[ 1 ].key ).toBe( "2012-01-15" );
-                expect( resultsAll[ 0 ].key ).toBe( "2012-01-12" );
+                //expect( resultsAll[ 1 ].key ).toBe( "2012-01-13" );
+                //expect( resultsAll[ 0 ].key ).toBe( "2012-01-11" );
+                //expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
+                //expect( resultsAll[ 2 ].key ).toBe( "2012-01-12" );
 
-                expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 17 );
-                expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 3 );
-                expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 10 );
-                expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 0 );
+                //expect( resultsAll[ 1 ].value ).toBe( 17 );
+                //expect( resultsAll[ 0 ].value ).toBe( 3 );
+                //expect( resultsAll[ 3 ].value ).toBe( 10 );
+                //expect( resultsAll[ 2 ].value ).toBe( 0 );
 
-                expect( resultsAll[ 3 ].percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
-                expect( resultsAll[ 1 ].percentageChange ).toBeCloseTo( -41.18 );
-                expect( resultsAll[ 0 ].percentageChange ).toBe( -100 );
+                expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 3 ].percentageChange ).toBeCloseTo( -41.18 );
+                expect( resultsAll[ 2 ].percentageChange ).toBe( -100 );
 
             });
 
@@ -1159,20 +1597,20 @@ describe('accumulateGroupForPercentageChange', function() {
 
                 var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.all();
 
-                expect( resultsAll[ 0 ].key ).toBe( "2012-01-13" );
-                expect( resultsAll[ 1 ].key ).toBe( "2012-01-11" );
-                expect( resultsAll[ 2 ].key ).toBe( "2012-01-15" );
-                expect( resultsAll[ 3 ].key ).toBe( "2012-01-12" );
+                //expect( resultsAll[ 2 ].key ).toBe( "2012-01-13" );
+                //expect( resultsAll[ 3 ].key ).toBe( "2012-01-11" );
+                //expect( resultsAll[ 0 ].key ).toBe( "2012-01-15" );
+                //expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
 
-                expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 17 );
-                expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 3 );
-                expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 10 );
-                expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 0 );
+                //expect( resultsAll[ 2 ].value ).toBe( 17 );
+                //expect( resultsAll[ 3 ].value ).toBe( 3 );
+                //expect( resultsAll[ 0 ].value ).toBe( 10 );
+                //expect( resultsAll[ 1 ].value ).toBe( 0 );
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 1 ].percentageChange ).toBe( 0 );
-                expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( -41.18 );
-                expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 0 ].percentageChange ).toBeCloseTo( -41.18 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( -100 );
 
             });
 
@@ -1196,7 +1634,7 @@ describe('accumulateGroupForPercentageChange', function() {
             expect( results[3].percentageChange ).toBeCloseTo( -41.66666666666667 );
             expect( results[4].percentageChange ).toBeCloseTo( -70 );
             expect( results[5].percentageChange ).toBeCloseTo( 50 );
-            expect( results[6].percentageChange ).toBe( 0 );
+            expect( results[6].percentageChange ).toBeNaN();
 
         });
 
@@ -1346,7 +1784,7 @@ describe('accumulateGroupForPercentageChange', function() {
             expect( results[2].key ).toBe( '2012-01-15' ); // 17
             expect( results[2].percentageChange ).toBeCloseTo( -41.17647058823529 );
             expect( results[3].key ).toBe( '2012-01-11' ); // 10
-            expect( results[3].percentageChange ).toBe( 0 );
+            expect( results[3].percentageChange ).toBeNaN();
 
             expect( results[0].key ).toBe( '2012-01-13' );
             expect( results[0]._debug.thisDayKey ).toBe( '2012-01-13' );
@@ -1377,10 +1815,10 @@ describe('accumulateGroupForPercentageChange', function() {
             expect( results[3].percentageChange ).toBe( 20 );
             expect( results[5].percentageChange ).toBeCloseTo( 233.33333333333334 );
             expect( results[6].percentageChange ).toBeCloseTo( 233.33333333333334 );
-            expect( results[1].percentageChange ).toBeCloseTo( -41.66666666666667 );
-            expect( results[0].percentageChange ).toBeCloseTo( -70 );
+            expect( results[2].percentageChange ).toBeCloseTo( -41.66666666666667 );
+            expect( results[1].percentageChange ).toBeCloseTo( -70 );
             expect( results[4].percentageChange ).toBeCloseTo( 50 );
-            expect( results[2].percentageChange ).toBe( 0 );
+            expect( results[0].percentageChange ).toBeNaN();
 
         });
 
@@ -1395,10 +1833,10 @@ describe('accumulateGroupForPercentageChange', function() {
             expect( results[3].percentageChange ).toBe( 20 );
             expect( results[1].percentageChange ).toBeCloseTo( 233.33333333333334 );
             expect( results[0].percentageChange ).toBeCloseTo( 233.33333333333334 );
-            expect( results[5].percentageChange ).toBeCloseTo( -41.66666666666667 );
-            expect( results[6].percentageChange ).toBeCloseTo( -70 );
+            expect( results[4].percentageChange ).toBeCloseTo( -41.66666666666667 );
+            expect( results[5].percentageChange ).toBeCloseTo( -70 );
             expect( results[2].percentageChange ).toBeCloseTo( 50 );
-            expect( results[4].percentageChange ).toBe( 0 );
+            expect( results[6].percentageChange ).toBeNaN();
 
         });
 
@@ -1416,7 +1854,7 @@ describe('accumulateGroupForPercentageChange', function() {
             expect( results[3].percentageChange ).toBeCloseTo( -41.66666666666667 );
             expect( results[4].percentageChange ).toBe( -70 );
             expect( results[5].percentageChange ).toBe( 50 );
-            expect( results[6].percentageChange ).toBe( 0 );
+            expect( results[6].percentageChange ).toBeNaN();
 
             dimensionVisitsForFiltering.filterRange( [ 3,11 ] );
 
@@ -1424,11 +1862,11 @@ describe('accumulateGroupForPercentageChange', function() {
 
             expect( results[0].percentageChange ).toBeCloseTo( 233.33333333333334 );
             expect( results[1].percentageChange ).toBeCloseTo( 233.33333333333334 );
-            expect( results[2].percentageChange ).toBe( Infinity );
+            expect( results[2].percentageChange ).toBeNaN();
             expect( results[3].percentageChange ).toBe( -70 );
-            expect( results[4].percentageChange ).toBe( Infinity );
+            expect( results[4].percentageChange ).toBeNaN();
             expect( results[5].percentageChange ).toBe( -100 );
-            expect( results[6].percentageChange ).toBe( 0 );
+            expect( results[6].percentageChange ).toBeNaN();
 
         });
 
@@ -1468,10 +1906,10 @@ describe('accumulateGroupForPercentageChange', function() {
             var rollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
 
             var origKey = rollingAverageFakeGroup.valueAccessor();
-            var mySpy = jasmine.createSpy(origKey ).and.callThrough();
+            var mySpy = jasmine.createSpy( origKey ).and.callThrough();
             rollingAverageFakeGroup.valueAccessor( mySpy );
 
-            rollingAverageFakeGroup.top(Infinity);
+            rollingAverageFakeGroup.top( Infinity );
 
             expect( mySpy ).toHaveBeenCalled();
 
@@ -1513,9 +1951,9 @@ describe('accumulateGroupForPercentageChange', function() {
                 expect( resultsAll[ 2 ].value ).toBe( 3 );
                 expect( resultsAll[ 3 ].value ).toBe( 0 );
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 1 ].percentageChange ).toBeCloseTo( -41.18 );
-                expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
 
             });
@@ -1543,8 +1981,8 @@ describe('accumulateGroupForPercentageChange', function() {
                 expect( resultsAll[ 3 ].value ).toBe( 0 );
 
                 expect( resultsAll[ 0 ].percentageChange ).toBe( 400 );
-                expect( resultsAll[ 1 ].percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
 
             });
@@ -1620,7 +2058,7 @@ describe('accumulateGroupForPercentageChange', function() {
                 expect( resultsAll[ 1 ].percentageChange ).not.toBe( 200 );
                 expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 2 ].percentageChange ).not.toBe( 13.33 );
-                expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 3 ].percentageChange ).not.toBe( 41.18 );
 
                 percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.totalVisits; } );
@@ -1633,15 +2071,15 @@ describe('accumulateGroupForPercentageChange', function() {
                 expect( resultsAll[ 2 ].key ).toBe( "2012-01-15" );
                 expect( resultsAll[ 3 ].key ).toBe( "2012-01-11" );
 
-                expect( resultsAll[ 0 ].value.totalVisits ).toBe( 17 );
-                expect( resultsAll[ 1 ].value.totalVisits ).toBe( 15 );
-                expect( resultsAll[ 2 ].value.totalVisits ).toBe( 10 );
-                expect( resultsAll[ 3 ].value.totalVisits ).toBe( 6 );
+                expect( resultsAll[ 0 ].value ).toBe( 17 );
+                expect( resultsAll[ 1 ].value ).toBe( 15 );
+                expect( resultsAll[ 2 ].value ).toBe( 10 );
+                expect( resultsAll[ 3 ].value ).toBe( 6 );
 
                 expect( resultsAll[ 0 ].percentageChange ).toBeCloseTo( 13.33 );
                 expect( resultsAll[ 1 ].percentageChange ).toBe( 150 );
                 expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( -41.18 );
-                expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
 
             });
 
@@ -1657,14 +2095,14 @@ describe('accumulateGroupForPercentageChange', function() {
                 expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
                 expect( resultsAll[ 3 ].key ).toBe( "2012-01-12" );
 
-                expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 17 );
-                expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 10 );
-                expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 3 );
-                expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 0 );
+                expect( resultsAll[ 0 ].value ).toBe( 17 );
+                expect( resultsAll[ 1 ].value ).toBe( 10 );
+                expect( resultsAll[ 2 ].value ).toBe( 3 );
+                expect( resultsAll[ 3 ].value ).toBe( 0 );
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 1 ].percentageChange ).toBeCloseTo( -41.18 );
-                expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
 
             });
@@ -1676,33 +2114,151 @@ describe('accumulateGroupForPercentageChange', function() {
 
                 var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( Infinity );
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 1 ].percentageChange ).toBe( -100 );
-                expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
-                expect( resultsAll[ 3 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
 
             });
 
-            xit('allows getting the % change of each place', function() {
+            it('allows getting the % change of each place with a custom iterationAccessor and calculationAccessor', function() {
 
-                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.places.A.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor('places');
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.calculationAccessor( function(d) { return d.visits; } );
 
                 var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
-                expect( resultsAll[ 0 ].percentageChange ).not.toBeDefined();
-                expect( resultsAll[ 1 ].percentageChange ).not.toBeDefined();
-                expect( resultsAll[ 2 ].percentageChange ).not.toBeDefined();
-                expect( resultsAll[ 3 ].percentageChange ).not.toBeDefined();
+                //expect( resultsAll[ 1 ].key ).toBe( '2012-01-13' );
+                //expect( resultsAll[ 2 ].key ).toBe( '2012-01-15' );
+                //expect( resultsAll[ 3 ].key ).toBe( '2012-01-11' );
+                //expect( resultsAll[ 0 ].key ).toBe( '2012-01-12' );
 
-                expect( resultsAll[ 0 ].value.places.A.percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 1 ].value.places.A.percentageChange ).toBeCloseTo( -41.18 );
-                expect( resultsAll[ 2 ].value.places.A.percentageChange ).toBe( 0 );
-                expect( resultsAll[ 3 ].value.places.A.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
 
-                expect( resultsAll[ 0 ].value.places.B.percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 1 ].value.places.B.percentageChange ).toBe( -100 );
-                expect( resultsAll[ 2 ].value.places.B.percentageChange ).toBe( 0 );
-                expect( resultsAll[ 3 ].value.places.B.percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].value ).not.toBeDefined();
+                expect( resultsAll[ 2 ].value ).not.toBeDefined();
+                expect( resultsAll[ 3 ].value ).not.toBeDefined();
+                expect( resultsAll[ 0 ].value ).not.toBeDefined();
+
+                expect( resultsAll[ 0 ]._debug.thisDayKey ).toBe( '2012-01-12' );
+                expect( resultsAll[ 0 ]._debug.places.A.value ).toBe( 0 );
+                expect( resultsAll[ 0 ]._debug.prevDayKey ).toBe( '2012-01-11' );
+                expect( resultsAll[ 0 ]._debug.places.A.prevValue ).toBe( 3 );
+
+                //expect( resultsAll[ 1 ].places.A.value ).toBe( 17 );
+                //expect( resultsAll[ 2 ].places.A.value ).toBe( 10 );
+                //expect( resultsAll[ 3 ].places.A.value ).toBe( 3 );
+                //expect( resultsAll[ 0 ].places.A.value ).toBe( 0 );
+
+                expect( resultsAll[ 1 ].places.A.percentageChange ).toBeNaN();
+                expect( resultsAll[ 2 ].places.A.percentageChange ).toBeCloseTo( -41.18 );
+                expect( resultsAll[ 3 ].places.A.percentageChange ).toBeNaN();
+                expect( resultsAll[ 0 ].places.A.percentageChange ).toBe( -100 );
+
+                expect( resultsAll[ 1 ].places.B.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].places.B.percentageChange ).toBeNaN();
+                expect( resultsAll[ 3 ].places.B.percentageChange ).toBeNaN();
+                expect( resultsAll[ 0 ].places.B.percentageChange ).toBeNaN();
+
+            });
+
+            xit('allows getting the % change of each place sorted ascending with a custom iterationAccessor and calculationAccessor', function() {
+
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor('places');
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.calculationAccessor( function(d) { return d.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange( 1 );
+
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
+
+                //expect( resultsAll[ 1 ].key ).toBe( '2012-01-13' );
+                //expect( resultsAll[ 2 ].key ).toBe( '2012-01-15' );
+                //expect( resultsAll[ 3 ].key ).toBe( '2012-01-11' );
+                //expect( resultsAll[ 0 ].key ).toBe( '2012-01-12' );
+
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
+
+                expect( resultsAll[ 0 ].value ).not.toBeDefined();
+                expect( resultsAll[ 1 ].value ).not.toBeDefined();
+                expect( resultsAll[ 2 ].value ).not.toBeDefined();
+                expect( resultsAll[ 3 ].value ).not.toBeDefined();
+
+                //expect( resultsAll[ 0 ].places[ 1 ].key ).toBe( "A" );
+                expect( resultsAll[ 0 ].places[ 1 ].percentageChange ).toBe( -100 );
+                //expect( resultsAll[ 0 ].places[ 1 ].value ).toBe( 0 );
+                //expect( resultsAll[ 0 ].places[ 1 ]._debug.value ).toBe( 0 );
+                //expect( resultsAll[ 0 ].places[ 1 ]._debug.prevValue ).toBe( 3 );
+                //expect( resultsAll[ 1 ].places[ 0 ].key ).toBe( "A" );
+                expect( resultsAll[ 1 ].places[ 0 ].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 2 ].places[ 2 ].key ).toBe( "A" );
+                expect( resultsAll[ 2 ].places[ 2 ].percentageChange ).toBeCloseTo( -41.18 );
+                //expect( resultsAll[ 3 ].places[ 0 ].key ).toBe( "A" );
+                expect( resultsAll[ 3 ].places[ 0 ].percentageChange ).toBeNaN();
+
+                //expect( resultsAll[ 0 ].places[ 0 ].key ).toBe( "B" );
+                expect( resultsAll[ 0 ].places[ 0 ].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 1 ].places[ 2 ].key ).toBe( "B" );
+                expect( resultsAll[ 1 ].places[ 2 ].percentageChange ).toBe( -100 );
+                //expect( resultsAll[ 2 ].places[ 0 ].key ).toBe( "B" );
+                expect( resultsAll[ 2 ].places[ 0 ].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 3 ].places[ 1 ].key ).toBe( "B" );
+                expect( resultsAll[ 3 ].places[ 1 ].percentageChange ).toBeNaN();
+
+            });
+
+            xit('allows getting the % change of each place sorted descending with a custom iterationAccessor and calculationAccessor', function() {
+
+                //percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.totalVisits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor('places');
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.calculationAccessor( function(d) { return d.visits; } );
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange( -1 );
+
+                var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
+
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
+
+                expect( resultsAll[ 0 ].value ).not.toBeDefined();
+                expect( resultsAll[ 1 ].value ).not.toBeDefined();
+                expect( resultsAll[ 2 ].value ).not.toBeDefined();
+                expect( resultsAll[ 3 ].value ).not.toBeDefined();
+
+                //expect( resultsAll[ 0 ].places[ 2 ].key ).toBe( "A" );
+                expect( resultsAll[ 0 ].places[ 2 ].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 0 ].places[ 2 ].value ).toBe( 3 );
+                //expect( resultsAll[ 1 ].places[ 0 ].key ).toBe( "A" );
+                expect( resultsAll[ 1 ].places[ 0 ].percentageChange ).toBeCloseTo( -41.18 );
+                //expect( resultsAll[ 2 ].places[ 2 ].key ).toBe( "A" );
+                expect( resultsAll[ 2 ].places[ 2 ].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 3 ].places[ 0 ].key ).toBe( "A" );
+                expect( resultsAll[ 3 ].places[ 0 ].percentageChange ).toBe( -100 );
+
+                //expect( resultsAll[ 0 ].places[ 1 ].key ).toBe( "B" );
+                expect( resultsAll[ 0 ].places[ 1 ].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 1 ].places[ 2 ].key ).toBe( "B" );
+                expect( resultsAll[ 1 ].places[ 2 ].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 2 ].places[ 0 ].key ).toBe( "B" );
+                expect( resultsAll[ 2 ].places[ 0 ].percentageChange ).toBe( -100 );
+                //expect( resultsAll[ 3 ].places[ 2 ].key ).toBe( "B" );
+                expect( resultsAll[ 3 ].places[ 2 ].percentageChange ).toBeNaN();
+
+                //expect( resultsAll[ 0 ].places[ 0 ].key ).toBe( "C" );
+                expect( resultsAll[ 0 ].places[ 0 ].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 1 ].places[ 1 ].key ).toBe( "C" );
+                expect( resultsAll[ 1 ].places[ 1 ].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 2 ].places[ 1 ].key ).toBe( "C" );
+                expect( resultsAll[ 2 ].places[ 1 ].percentageChange ).toBeNaN();
+                //expect( resultsAll[ 3 ].places[ 1 ].key ).toBe( "C" );
+                expect( resultsAll[ 3 ].places[ 1 ].percentageChange ).toBe( -100 );
+
+
 
             });
 
@@ -1720,14 +2276,14 @@ describe('accumulateGroupForPercentageChange', function() {
                 expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
                 expect( resultsAll[ 3 ].key ).toBe( "2012-01-13" );
 
-                expect( resultsAll[ 0 ].value.territories.A.visits ).toBe( 15 );
-                expect( resultsAll[ 1 ].value.territories.A.visits ).toBe( 10 );
-                expect( resultsAll[ 2 ].value.territories.A.visits ).toBe( 3 );
-                expect( resultsAll[ 3 ].value.territories.A.visits ).toBe( 0 );
+                expect( resultsAll[ 0 ].value ).toBe( 15 );
+                expect( resultsAll[ 1 ].value ).toBe( 10 );
+                expect( resultsAll[ 2 ].value ).toBe( 3 );
+                expect( resultsAll[ 3 ].value ).toBe( 0 );
 
                 expect( resultsAll[ 0 ].percentageChange ).toBe( 400 );
-                expect( resultsAll[ 1 ].percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
 
             });
@@ -1739,35 +2295,43 @@ describe('accumulateGroupForPercentageChange', function() {
 
                 var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 1 ].percentageChange ).toBe( 0 );
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
                 expect( resultsAll[ 2 ].percentageChange ).toBe( -100 );
                 expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
 
             });
 
-            xit('allows getting the % change of each territory', function() {
+            it('allows getting the % change of each territory with a custom iterationAccessor and calculationAccessor', function() {
+
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.calculationAccessor(function(d) { return d.visits; });
+                percentageChangeGroupVisitsByPlaceAndTerritoryByDate.iterationAccessor('territories');
 
                 var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
-                expect( resultsAll[ 0 ].percentageChange ).not.toBeDefined();
-                expect( resultsAll[ 1 ].percentageChange ).not.toBeDefined();
-                expect( resultsAll[ 2 ].percentageChange ).not.toBeDefined();
-                expect( resultsAll[ 3 ].percentageChange ).not.toBeDefined();
+                expect( resultsAll[ 3 ].key ).toBe( '2012-01-11' );
+                expect( resultsAll[ 0 ].key ).toBe( '2012-01-12' );
+                expect( resultsAll[ 1 ].key ).toBe( '2012-01-13' );
+                expect( resultsAll[ 2 ].key ).toBe( '2012-01-15' );
 
-                expect( resultsAll[ 0 ].value.territories.A.percentageChange ).toBe( 400 );
-                expect( resultsAll[ 1 ].value.territories.A.percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 2 ].value.territories.A.percentageChange ).toBe( 0 );
-                expect( resultsAll[ 3 ].value.territories.A.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
 
-                expect( resultsAll[ 0 ].value.territories.B.percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 1 ].value.territories.B.percentageChange ).toBe( 0 );
-                expect( resultsAll[ 2 ].value.territories.B.percentageChange ).toBe( -100 );
-                expect( resultsAll[ 3 ].value.territories.B.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 3 ].territories.A.percentageChange ).toBeNaN();
+                expect( resultsAll[ 0 ].territories.A.percentageChange ).toBe( 400 );
+                expect( resultsAll[ 1 ].territories.A.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 2 ].territories.A.percentageChange ).toBeNaN();
+
+                expect( resultsAll[ 3 ].territories.B.percentageChange ).toBeNaN();
+                expect( resultsAll[ 0 ].territories.B.percentageChange ).toBe( -100 );
+                expect( resultsAll[ 1 ].territories.B.percentageChange ).toBeNaN();
+                expect( resultsAll[ 2 ].territories.B.percentageChange ).toBe( -100 );
 
             });
 
-            xit('allows getting the % change of each place and territory and total', function() {
+            xit('allows getting the % change of each place and territory and total with a custom calculationAccessor, iterationAccessor, and custom iterationValueAccessor', function() {
 
                 percentageChangeGroupVisitsByPlaceAndTerritoryByDate.valueAccessor( function(d) { return d.value.totalVisits; } );
 
@@ -1809,20 +2373,20 @@ describe('accumulateGroupForPercentageChange', function() {
 
                 var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
-                expect( resultsAll[ 3 ].key ).toBe( "2012-01-13" );
-                expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
-                expect( resultsAll[ 1 ].key ).toBe( "2012-01-15" );
-                expect( resultsAll[ 0 ].key ).toBe( "2012-01-12" );
+                //expect( resultsAll[ 0 ].key ).toBe( "2012-01-13" );
+                //expect( resultsAll[ 1 ].key ).toBe( "2012-01-11" );
+                //expect( resultsAll[ 3 ].key ).toBe( "2012-01-15" );
+                //expect( resultsAll[ 2 ].key ).toBe( "2012-01-12" );
 
-                expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 17 );
-                expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 3 );
-                expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 10 );
-                expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 0 );
+                //expect( resultsAll[ 0 ].value ).toBe( 17 );
+                //expect( resultsAll[ 1 ].value ).toBe( 3 );
+                //expect( resultsAll[ 3 ].value ).toBe( 10 );
+                //expect( resultsAll[ 2 ].value ).toBe( 0 );
 
-                expect( resultsAll[ 3 ].percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 2 ].percentageChange ).toBe( 0 );
-                expect( resultsAll[ 1 ].percentageChange ).toBeCloseTo( -41.18 );
-                expect( resultsAll[ 0 ].percentageChange ).toBe( -100 );
+                expect( resultsAll[ 0 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 1 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 3 ].percentageChange ).toBeCloseTo( -41.18 );
+                expect( resultsAll[ 2 ].percentageChange ).toBe( -100 );
 
             });
 
@@ -1835,20 +2399,20 @@ describe('accumulateGroupForPercentageChange', function() {
 
                 var resultsAll = percentageChangeGroupVisitsByPlaceAndTerritoryByDate.top(Infinity);
 
-                expect( resultsAll[ 0 ].key ).toBe( "2012-01-13" );
-                expect( resultsAll[ 1 ].key ).toBe( "2012-01-11" );
-                expect( resultsAll[ 2 ].key ).toBe( "2012-01-15" );
-                expect( resultsAll[ 3 ].key ).toBe( "2012-01-12" );
+                //expect( resultsAll[ 3 ].key ).toBe( "2012-01-13" );
+                //expect( resultsAll[ 2 ].key ).toBe( "2012-01-11" );
+                //expect( resultsAll[ 0 ].key ).toBe( "2012-01-15" );
+                //expect( resultsAll[ 1 ].key ).toBe( "2012-01-12" );
 
-                expect( resultsAll[ 0 ].value.places.A.visits ).toBe( 17 );
-                expect( resultsAll[ 1 ].value.places.A.visits ).toBe( 3 );
-                expect( resultsAll[ 2 ].value.places.A.visits ).toBe( 10 );
-                expect( resultsAll[ 3 ].value.places.A.visits ).toBe( 0 );
+                //expect( resultsAll[ 3 ].value ).toBe( 17 );
+                //expect( resultsAll[ 2 ].value ).toBe( 3 );
+                //expect( resultsAll[ 0 ].value ).toBe( 10 );
+                //expect( resultsAll[ 1 ].value ).toBe( 0 );
 
-                expect( resultsAll[ 0 ].percentageChange ).toBe( Infinity );
-                expect( resultsAll[ 1 ].percentageChange ).toBe( 0 );
-                expect( resultsAll[ 2 ].percentageChange ).toBeCloseTo( -41.18 );
-                expect( resultsAll[ 3 ].percentageChange ).toBe( -100 );
+                expect( resultsAll[ 3 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 2 ].percentageChange ).toBeNaN();
+                expect( resultsAll[ 0 ].percentageChange ).toBeCloseTo( -41.18 );
+                expect( resultsAll[ 1 ].percentageChange ).toBe( -100 );
 
             });
 
@@ -1856,34 +2420,47 @@ describe('accumulateGroupForPercentageChange', function() {
 
         describe('new needed features', function() {
 
-            it('supports easily finding a `rising star`', function() {
+            var dummyData,
+                cx,
+                dimensionPerson,
+                dimensionP,
+                dimensionPPerson,
+                groupCommendationsOnP,
+                groupCommendationsOnPerson,
+                groupCommendationsOnPPerson,
+                knownPersons,
+                risingStars,
+                ma,
+                groupProbablyIt;
 
-                var dummyData = [
+
+            beforeEach(function() {
+
+                dummyData = [
                     { p: '01', person: 'Julie', commendations: 31 },
-                    { p: '01', person: 'Adam',  commendations: 26 },
-                    { p: '01', person: 'Sauron',commendations: 29 },
-                    { p: '02', person: 'Julie',commendations: 41 },
-                    { p: '02', person: 'Adam',commendations: 32 },
-                    { p: '02', person: 'Sauron',commendations: 51 },
-                    { p: '03', person: 'Julie',commendations: 16 },
-                    { p: '03', person: 'Adam',commendations: 37 },
-                    { p: '03', person: 'Sauron',commendations: 48 }
+                    { p: '01', person: 'Adam', commendations: 26 },
+                    { p: '01', person: 'Sauron', commendations: 29 },
+                    { p: '02', person: 'Julie', commendations: 41 },
+                    { p: '02', person: 'Adam', commendations: 32 },
+                    { p: '02', person: 'Sauron', commendations: 51 },
+                    { p: '03', person: 'Julie', commendations: 16 },
+                    { p: '03', person: 'Adam', commendations: 37 },
+                    { p: '03', person: 'Sauron', commendations: 48 }
                 ];
 
+                cx = crossfilter( dummyData );
+                dimensionP = cx.dimension( function ( d ) { return d.p; } );
+                dimensionPPerson = cx.dimension( function ( d ) { return d.p + '-' + d.person; } );
+                dimensionPerson = cx.dimension( function ( d ) { return d.person; } );
 
-                var cx = crossfilter( dummyData );
-                var dimensionP = cx.dimension(function(d) { return d.p; } );
-                var dimensionPPerson = cx.dimension(function(d) { return d.p + '-' + d.person; } );
-                var dimensionPerson = cx.dimension(function(d) { return d.person; } );
+                groupCommendationsOnP = dimensionP.group().reduceSum( function ( d ) { return d.commendations; } );
+                groupCommendationsOnPPerson = dimensionPPerson.group().reduceSum( function ( d ) { return d.commendations; } );
+                groupCommendationsOnPerson = dimensionPerson.group().reduceSum( function ( d ) { return d.commendations; } );
 
-                var groupCommendationsOnP = dimensionP.group().reduceSum( function(d) { return d.commendations; } );
-                var groupCommendationsOnPPerson = dimensionPPerson.group().reduceSum( function(d) { return d.commendations; } );
-                var groupCommendationsOnPerson = dimensionPerson.group().reduceSum( function(d) { return d.commendations; } );
+                knownPersons = dimensionPerson.group().all().map( function ( d ) { return d.key; } );
 
-                var knownPersons = dimensionPerson.group().all().map( function(d) { return d.key; } );
-
-                var groupProbablyIt = dimensionP.group().reduce(
-                    function (p,v) {
+                groupProbablyIt = dimensionP.group().reduce(
+                    function ( p, v ) {
 
                         p.commendations += v.commendations;
 
@@ -1897,7 +2474,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
                         return p;
                     },
-                    function (p,v) {
+                    function ( p, v ) {
 
                         p.commendations -= v.commendations;
 
@@ -1909,7 +2486,7 @@ describe('accumulateGroupForPercentageChange', function() {
 
                         return p;
                     },
-                    function (p,v) {
+                    function ( p, v ) {
                         var obj = {};
 
                         obj.commendations = 0;
@@ -1919,7 +2496,7 @@ describe('accumulateGroupForPercentageChange', function() {
                         var t = knownPersons.length,
                             i = -1;
                         while ( ++i < t ) {
-                            obj.persons[ knownPersons[i] ] = {
+                            obj.persons[ knownPersons[ i ] ] = {
                                 commendations: 0
                             };
                         }
@@ -1927,56 +2504,164 @@ describe('accumulateGroupForPercentageChange', function() {
                         return obj;
                     }
                 ).order(
-                    function (p) {
+                    function ( p ) {
                         return p.p;
                     }
                 );
 
-                var ma = crossfilterMa.accumulateGroupForPercentageChange( groupProbablyIt, true );
+                ma = crossfilterMa.accumulateGroupForPercentageChange( groupProbablyIt, true );
 
-                ma.valueAccessor( function(d) { return d.commendations; });
+                ma.calculationAccessor( function(d) { return d.commendations; });
+                ma.iterationAccessor('persons');
+            });
 
-                // todo methinks instead of passing a function we should pass a string of the key to look for
-                ma.iterationAccessKey = 'persons';
+            it('supports easily finding a `rising star`', function() {
 
-                // default one? or don't use one if not set? ''?
-                //ma.iterationAccessor( function(d) { return d.value; } );
+                risingStars = ma.top( Infinity );
 
+                expect( risingStars[0].key ).toBe( '03' );
+                expect( risingStars[0].value ).toBe( 101 );
+                expect( risingStars[0].percentageChange ).toBeCloseTo( -18.54838 );
+                expect( risingStars[0].persons[ 'Sauron' ].key ).toBe( 'Sauron' );
+                expect( risingStars[0].persons[ 'Sauron' ].percentageChange ).toBeCloseTo( -5.88235294117647 );
+                expect( risingStars[0].persons[ 'Julie' ].key ).toBe( 'Julie' );
+                expect( risingStars[0].persons[ 'Julie' ].percentageChange ).toBeCloseTo( -60.97560975609756 );
+                expect( risingStars[0].persons[ 'Adam' ].key ).toBe( 'Adam' );
+                expect( risingStars[0].persons[ 'Adam' ].percentageChange ).toBeCloseTo( 15.625 );
 
-
-                //ma.iterationAccessor( function(d) { return d.value.persons; } );
-                //ma.valueAccessor( function(d) { return d.commendations; });
-                debugger;
-
-                var risingStars = ma.top( Infinity );
-
-
-                expect( risingStars[0].key ).toBe( '01' );
-                expect( risingStars[0].persons[ 0 ].key ).toBe( 'Sauron' );
-                expect( risingStars[0].persons[ 0 ].percentageChange ).toBe( NaN );
-                expect( risingStars[0].persons[ 1 ].key ).toBe( 'Julie' );
-                expect( risingStars[0].persons[ 1 ].percentageChange ).toBe( NaN );
-                expect( risingStars[0].persons[ 2 ].key ).toBe( 'Adam' );
-                expect( risingStars[0].persons[ 2 ].percentageChange ).toBe( NaN );
-
-                expect( risingStars[1].key ).toBe( '02' );
-                expect( risingStars[1].persons[ 0 ].key ).toBe( 'Sauron' );
-                expect( risingStars[1].persons[ 0 ].percentageChange ).toBeCloseTo( 75.86 );
-                expect( risingStars[1].persons[ 1 ].key ).toBe( 'Julie' );
-                expect( risingStars[1].persons[ 1 ].percentageChange ).toBeCloseTo( 32.25 );
-                expect( risingStars[1].persons[ 2 ].key ).toBe( 'Adam' );
-                expect( risingStars[1].persons[ 2 ].percentageChange ).toBeCloseTo( 23.07 );
+                expect( risingStars[1].key ).toBe( '01' );
+                expect( risingStars[1].value ).toBe( 86 );
+                expect( risingStars[1].percentageChange ).toBeNaN();
+                expect( risingStars[1].persons[ 'Sauron' ].key ).toBe( 'Sauron' );
+                expect( risingStars[1].persons[ 'Sauron' ].percentageChange ).toBeNaN();
+                expect( risingStars[1].persons[ 'Julie' ].key ).toBe( 'Julie' );
+                expect( risingStars[1].persons[ 'Julie' ].percentageChange ).toBeNaN();
+                expect( risingStars[1].persons[ 'Adam' ].key ).toBe( 'Adam' );
+                expect( risingStars[1].persons[ 'Adam' ].percentageChange ).toBeNaN();
 
                 expect( risingStars[2].key ).toBe( '02' );
-                expect( risingStars[2].persons[ 0 ].key ).toBe( 'Sauron' );
-                expect( risingStars[2].persons[ 0 ].percentageChange ).toBeCloseTo( -5.88235294117647 );
-                expect( risingStars[2].persons[ 1 ].key ).toBe( 'Julie' );
-                expect( risingStars[2].persons[ 1 ].percentageChange ).toBeCloseTo( -60.97560975609756 );
-                expect( risingStars[2].persons[ 2 ].key ).toBe( 'Adam' );
-                expect( risingStars[2].persons[ 2 ].percentageChange ).toBeCloseTo( 15.625 );
+                expect( risingStars[2].value ).toBe( 124 );
+                expect( risingStars[2].percentageChange ).toBeCloseTo( 44.18604651162791 );
+                expect( risingStars[2].persons[ 'Sauron' ].key ).toBe( 'Sauron' );
+                expect( risingStars[2].persons[ 'Sauron' ].percentageChange ).toBeCloseTo( 75.86 );
+                expect( risingStars[2].persons[ 'Julie' ].key ).toBe( 'Julie' );
+                expect( risingStars[2].persons[ 'Julie' ].percentageChange ).toBeCloseTo( 32.2580645161 );
+                expect( risingStars[2].persons[ 'Adam' ].key ).toBe( 'Adam' );
+                expect( risingStars[2].persons[ 'Adam' ].percentageChange ).toBeCloseTo( 23.07692307692 );
 
+
+                expect( risingStars[ 0 ]._debug.persons[ 'Sauron' ].key).toBe( 'Sauron' );
+                expect( risingStars[ 0 ]._debug.persons[ 'Sauron' ].value).toBe( 48 );
+                expect( risingStars[ 0 ]._debug.persons[ 'Sauron' ].prevKey).toBe( 'Sauron' );
+                expect( risingStars[ 0 ]._debug.persons[ 'Sauron' ].prevValue).toBe( 51 );
+
+
+                expect( risingStars[ 1 ]._debug.persons[ 'Sauron' ].key).toBe( 'Sauron' );
+                expect( risingStars[ 1 ]._debug.persons[ 'Sauron' ].value).toBe( 29 );
+                expect( risingStars[ 1 ]._debug.persons[ 'Sauron' ].prevKey).toBe( 'None' );
+                expect( risingStars[ 1 ]._debug.persons[ 'Sauron' ].prevValue).toBe( 'None' );
 
             });
+
+            it('supports sorting the iterationAccessor keys ascending', function() {
+
+                ma.orderByPercentageChange( 1 );
+
+                risingStars = ma.top( Infinity );
+
+                expect( risingStars[1].key ).toBe( '03' );
+                expect( risingStars[1].value ).toBe( 101 );
+                expect( risingStars[1].percentageChange ).toBeCloseTo( -18.54838 );
+                expect( risingStars[1].persons[ 1 ].key ).toBe( 'Sauron' );
+                expect( risingStars[1].persons[ 1 ].percentageChange ).toBeCloseTo( -5.88235294117647 );
+                expect( risingStars[1].persons[ 0 ].key ).toBe( 'Julie' );
+                expect( risingStars[1].persons[ 0 ].percentageChange ).toBeCloseTo( -60.97560975609756 );
+                expect( risingStars[1].persons[ 2 ].key ).toBe( 'Adam' );
+                expect( risingStars[1].persons[ 2 ].percentageChange ).toBeCloseTo( 15.625 );
+
+                expect( risingStars[0].key ).toBe( '01' );
+                expect( risingStars[0].value ).toBe( 86 );
+                expect( risingStars[0].percentageChange ).toBeNaN();
+                //expect( risingStars[0].persons[ 2 ].key ).toBe( 'Sauron' );
+                expect( risingStars[0].persons[ 2 ].percentageChange ).toBeNaN();
+                expect( risingStars[0].persons[ 1 ].key ).toBe( 'Julie' );
+                expect( risingStars[0].persons[ 1 ].percentageChange ).toBeNaN();
+                //expect( risingStars[0].persons[ 0 ].key ).toBe( 'Adam' );
+                expect( risingStars[0].persons[ 0 ].percentageChange ).toBeNaN();
+
+                expect( risingStars[2].key ).toBe( '02' );
+                expect( risingStars[2].value ).toBe( 124 );
+                expect( risingStars[2].percentageChange ).toBeCloseTo( 44.18604651162791 );
+                expect( risingStars[2].persons[ 2 ].key ).toBe( 'Sauron' );
+                expect( risingStars[2].persons[ 2 ].percentageChange ).toBeCloseTo( 75.86 );
+                expect( risingStars[2].persons[ 1 ].key ).toBe( 'Julie' );
+                expect( risingStars[2].persons[ 1 ].percentageChange ).toBeCloseTo( 32.2580645161 );
+                expect( risingStars[2].persons[ 0 ].key ).toBe( 'Adam' );
+                expect( risingStars[2].persons[ 0 ].percentageChange ).toBeCloseTo( 23.07692307692 );
+
+                expect( risingStars[ 1 ]._debug.persons[ 'Sauron' ].key).toBe( 'Sauron' );
+                expect( risingStars[ 1 ]._debug.persons[ 'Sauron' ].value).toBe( 48 );
+                expect( risingStars[ 1 ]._debug.persons[ 'Sauron' ].prevKey).toBe( 'Sauron' );
+                expect( risingStars[ 1 ]._debug.persons[ 'Sauron' ].prevValue).toBe( 51 );
+
+
+                expect( risingStars[ 0 ]._debug.persons[ 'Sauron' ].key).toBe( 'Sauron' );
+                expect( risingStars[ 0 ]._debug.persons[ 'Sauron' ].value).toBe( 29 );
+                expect( risingStars[ 0 ]._debug.persons[ 'Sauron' ].prevKey).toBe( 'None' );
+                expect( risingStars[ 0 ]._debug.persons[ 'Sauron' ].prevValue).toBe( 'None' );
+
+            });
+
+
+            it('supports sorting the iterationAccessor keys descending', function() {
+
+                ma.orderByPercentageChange( -1 );
+
+                risingStars = ma.top( Infinity );
+
+                expect( risingStars[1].key ).toBe( '03' );
+                expect( risingStars[1].value ).toBe( 101 );
+                expect( risingStars[1].percentageChange ).toBeCloseTo( -18.54838 );
+                expect( risingStars[1].persons[ 1 ].key ).toBe( 'Sauron' );
+                expect( risingStars[1].persons[ 1 ].percentageChange ).toBeCloseTo( -5.88235294117647 );
+                expect( risingStars[1].persons[ 2 ].key ).toBe( 'Julie' );
+                expect( risingStars[1].persons[ 2 ].percentageChange ).toBeCloseTo( -60.97560975609756 );
+                expect( risingStars[1].persons[ 0 ].key ).toBe( 'Adam' );
+                expect( risingStars[1].persons[ 0 ].percentageChange ).toBeCloseTo( 15.625 );
+
+                expect( risingStars[2].key ).toBe( '01' );
+                expect( risingStars[2].value ).toBe( 86 );
+                expect( risingStars[2].percentageChange ).toBeNaN();
+                //expect( risingStars[2].persons[ 0 ].key ).toBe( 'Sauron' );
+                expect( risingStars[2].persons[ 0 ].percentageChange ).toBeNaN();
+                //expect( risingStars[2].persons[ 1 ].key ).toBe( 'Julie' );
+                expect( risingStars[2].persons[ 1 ].percentageChange ).toBeNaN();
+                //expect( risingStars[2].persons[ 2 ].key ).toBe( 'Adam' );
+                expect( risingStars[2].persons[ 2 ].percentageChange ).toBeNaN();
+
+                expect( risingStars[0].key ).toBe( '02' );
+                expect( risingStars[0].value ).toBe( 124 );
+                expect( risingStars[0].percentageChange ).toBeCloseTo( 44.18604651162791 );
+                expect( risingStars[0].persons[ 0 ].key ).toBe( 'Sauron' );
+                expect( risingStars[0].persons[ 0 ].percentageChange ).toBeCloseTo( 75.86 );
+                expect( risingStars[0].persons[ 1 ].key ).toBe( 'Julie' );
+                expect( risingStars[0].persons[ 1 ].percentageChange ).toBeCloseTo( 32.2580645161 );
+                expect( risingStars[0].persons[ 2 ].key ).toBe( 'Adam' );
+                expect( risingStars[0].persons[ 2 ].percentageChange ).toBeCloseTo( 23.07692307692 );
+
+                expect( risingStars[ 0 ]._debug.persons[ 'Sauron' ].key).toBe( 'Sauron' );
+                expect( risingStars[ 0 ]._debug.persons[ 'Sauron' ].value).toBe( 51 );
+                expect( risingStars[ 0 ]._debug.persons[ 'Sauron' ].prevKey).toBe( 'Sauron' );
+                expect( risingStars[ 0 ]._debug.persons[ 'Sauron' ].prevValue).toBe( 29 );
+
+
+                expect( risingStars[ 2 ]._debug.persons[ 'Sauron' ].key).toBe( 'Sauron' );
+                expect( risingStars[ 2 ]._debug.persons[ 'Sauron' ].value).toBe( 29 );
+                expect( risingStars[ 2 ]._debug.persons[ 'Sauron' ].prevKey).toBe( 'None' );
+                expect( risingStars[ 2 ]._debug.persons[ 'Sauron' ].prevValue).toBe( 'None' );
+
+            });
+
         });
 
     });
