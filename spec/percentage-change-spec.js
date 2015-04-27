@@ -269,15 +269,21 @@ describe('accumulateGroupForPercentageChange', function() {
 
             var firstRollingAverageFakeGroup;
 
-            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( { all: function() {} }, undefined );
+            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange(
+                { all: function() {} }, undefined
+            );
 
             expect( firstRollingAverageFakeGroup._debug() ).toBeFalsy();
 
-            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( { all: function() {} }, false );
+            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange(
+                { all: function() {} }, false
+            );
 
             expect( firstRollingAverageFakeGroup._debug() ).toBeFalsy();
 
-            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( { all: function() {} }, true );
+            firstRollingAverageFakeGroup = crossfilterMa.accumulateGroupForPercentageChange(
+                { all: function() {} }, true
+            );
 
             expect( firstRollingAverageFakeGroup._debug() ).toBeTruthy();
 
@@ -290,27 +296,19 @@ describe('accumulateGroupForPercentageChange', function() {
 
     describe('_debug()', function() {
 
-        describe('when given no parameters', function() {
+        it('when given no parameters returns the current state of the debug flag', function() {
 
-            it('returns the current state of the debug flag', function() {
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
 
-                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
-
-                expect( percentageChangeFakeGroup._debug() ).toBeFalsy();
-
-            });
+            expect( percentageChangeFakeGroup._debug() ).toBeFalsy();
 
         });
 
-        describe('when given parameters', function() {
+        it('when given parameters takes boolean coerce-able parameters as the new state of the debug flag', function() {
 
-            it('takes boolean coerce-able parameters as the new state of the debug flag', function() {
-
-                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
-                percentageChangeFakeGroup._debug( true );
-                expect( percentageChangeFakeGroup._debug() ).toBeTruthy();
-
-            });
+            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByDate );
+            percentageChangeFakeGroup._debug( true );
+            expect( percentageChangeFakeGroup._debug() ).toBeTruthy();
 
         });
 
@@ -334,11 +332,18 @@ describe('accumulateGroupForPercentageChange', function() {
 
         });
 
-        it('_defaultKeyAccessor() returns default key accessor', function() {
+        describe('_defaultKeyAccessor()', function() {
 
-            expect( percentageChangeFakeGroup._defaultKeyAccessor() ).toEqual( jasmine.any( Function ) );
+            it( 'returns default key accessor', function () {
 
-        });
+                var accessor = percentageChangeFakeGroup._defaultKeyAccessor();
+                expect( accessor ).toEqual( jasmine.any( Function ) );
+
+                expect( accessor( { key: 'fob' } ) ).toBe( 'fob' );
+
+            } );
+
+        } );
 
         describe('keyAccessor()', function() {
 
@@ -351,6 +356,9 @@ describe('accumulateGroupForPercentageChange', function() {
             it('allows configuring keyAccessor', function() {
 
                 origAccessor = percentageChangeFakeGroup.keyAccessor();
+
+                expect( percentageChangeFakeGroup.keyAccessor() ).toBe(origAccessor);
+                expect( percentageChangeFakeGroup.keyAccessor() ).not.toBe(myAccessor);
 
                 percentageChangeFakeGroup.keyAccessor( myAccessor );
 
@@ -402,9 +410,17 @@ describe('accumulateGroupForPercentageChange', function() {
 
         });
 
-        it('_defaultValueAccessor() returns default value accessor', function() {
+        describe('_defaultValueAccessor()', function() {
 
-            expect( percentageChangeFakeGroup._defaultValueAccessor() ).toEqual( jasmine.any( Function ) );
+            it('returns default value accessor', function() {
+
+                var accessor = percentageChangeFakeGroup._defaultValueAccessor();
+                expect( accessor ).toEqual( jasmine.any( Function ) );
+
+                expect( accessor( { value: 'deal' } ) ).toBe( 'deal' );
+
+
+            });
 
         });
 
@@ -419,6 +435,9 @@ describe('accumulateGroupForPercentageChange', function() {
             it('allows configuring valueAccessor', function() {
 
                 origAccessor = percentageChangeFakeGroup.valueAccessor();
+
+                expect( percentageChangeFakeGroup.valueAccessor() ).toBe(origAccessor);
+                expect( percentageChangeFakeGroup.valueAccessor() ).not.toBe(myAccessor);
 
                 percentageChangeFakeGroup.valueAccessor( myAccessor );
 
@@ -600,7 +619,7 @@ describe('accumulateGroupForPercentageChange', function() {
     });
 
 
-    describe('orderByPercentageChange', function() {
+    describe('orderByPercentageChange(...)', function() {
 
         var percentageChangeGroupVisitsByPlaceAndTerritoryByDate;
 

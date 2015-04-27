@@ -431,12 +431,17 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
     describe('key accessors', function() {
 
-        it('_defaultKeyAccessor() returns default key accessor', function() {
+        describe('_defaultKeyAccessor()', function() {
 
-            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
-            expect( percentageChangeFakeGroup._defaultKeyAccessor() ).toEqual( jasmine.any( Function ) );
+            it('returns default key accessor', function() {
+
+                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+                expect( percentageChangeFakeGroup._defaultKeyAccessor() ).toEqual( jasmine.any( Function ) );
+
+            });
 
         });
+
 
         describe('keyAccessor()', function() {
 
@@ -453,6 +458,9 @@ describe('accumulateGroupForNDayMovingAverage', function() {
                     origAccessor;
                 var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
                 origAccessor = percentageChangeFakeGroup.keyAccessor();
+
+                expect( percentageChangeFakeGroup.keyAccessor() ).toBe(origAccessor);
+                expect( percentageChangeFakeGroup.keyAccessor() ).not.toBe(myAccessor);
 
                 percentageChangeFakeGroup.keyAccessor( myAccessor );
 
@@ -473,10 +481,14 @@ describe('accumulateGroupForNDayMovingAverage', function() {
 
     describe('value accessors', function() {
 
-        it('_defaultValueAccessor() returns default value accessor', function() {
+        describe('_defaultValueAccessor()', function() {
 
-            var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
-            expect( percentageChangeFakeGroup._defaultValueAccessor() ).toEqual( jasmine.any(Function) );
+            it('returns default value accessor', function() {
+
+                var percentageChangeFakeGroup = crossfilterMa.accumulateGroupForNDayMovingAverage( groupVisitsByDate );
+                expect( percentageChangeFakeGroup._defaultValueAccessor() ).toEqual( jasmine.any(Function) );
+
+            });
 
         });
 
@@ -508,7 +520,7 @@ describe('accumulateGroupForNDayMovingAverage', function() {
     });
 
 
-    describe('orderByMovingAverage', function() {
+    describe('orderByMovingAverage(...)', function() {
 
         var movingAverageGroupVisitsByPlaceAndTerritoryByDate;
 
