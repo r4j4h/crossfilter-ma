@@ -70,35 +70,19 @@ function _potentiallyOrderByPercentageChange( orderingByPercentageChange, result
 
     if ( orderingByPercentageChange === 1 ) {
         results.sort( function ( a, b ) {
-            if ( isNaN( a.percentageChange ) ) {
-                return -1;
-            }
-            if ( isNaN( b.percentageChange ) ) {
-                return 1;
-            }
-            if ( a.percentageChange > b.percentageChange ) {
-                return 1;
-            }
-            if ( a.percentageChange < b.percentageChange ) {
-                return -1;
-            }
+            if ( isNaN( a.percentageChange ) ) { return -1; }
+            if ( isNaN( b.percentageChange ) ) { return 1; }
+            if ( a.percentageChange > b.percentageChange ) { return 1; }
+            if ( a.percentageChange < b.percentageChange ) { return -1; }
             // a must be equal to b
             return 0;
         } );
     } else if ( orderingByPercentageChange === -1 ) {
         results.sort( function ( a, b ) {
-            if ( isNaN( a.percentageChange ) ) {
-                return 1;
-            }
-            if ( isNaN( b.percentageChange ) ) {
-                return -1;
-            }
-            if ( a.percentageChange > b.percentageChange ) {
-                return -1;
-            }
-            if ( a.percentageChange < b.percentageChange ) {
-                return 1;
-            }
+            if ( isNaN( a.percentageChange ) ) { return 1; }
+            if ( isNaN( b.percentageChange ) ) { return -1; }
+            if ( a.percentageChange > b.percentageChange ) { return -1; }
+            if ( a.percentageChange < b.percentageChange ) { return 1; }
             // a must be equal to b
             return 0;
         } );
