@@ -110,7 +110,7 @@ function _convertKeyedSetToArray( keyedSet ) {
  * @returns {Boolean|[]}
  * @private
  */
-function _potentiallyOrderIterationAccessorResults( orderingByPercentageChange, results ) {
+function _potentiallyOrderIterationAccessorResultsByPercentageChange( orderingByPercentageChange, results ) {
 
     if ( orderingByPercentageChange === 1 ) {
         results = _convertKeyedSetToArray( results );
@@ -140,6 +140,7 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
     // Handle defaults
     debugMode = ( typeof debugMode !== 'undefined' ) ? !!debugMode : false;
     var orderingByPercentageChange = false;
+    var orderingOnlyNestedValuesByPercentageChange = false;
 
     var _keyAccessor;
     var _valueAccessor;
@@ -247,6 +248,26 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
             }
         },
 
+        /**
+         * Enables/disabling ordering of outer group flag, allowing only nested data to be sorted
+         * Or returns the current status of the flag if no parameters are provided.
+         * @param {boolean} [_]
+         */
+        orderOnlyNestedValuesByPercentageChange: function( _ ) {
+            if ( typeof _ === 'undefined' ) {
+                return orderingOnlyNestedValuesByPercentageChange;
+            }
+            switch ( _ ) {
+                case true:
+                case false:
+                    orderingOnlyNestedValuesByPercentageChange = _;
+                    break;
+                default:
+                case 0:
+                    break;
+            }
+        },
+
 
         all: function () {
 
@@ -327,7 +348,7 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
 
                     } );
 
-                    var sorted = _potentiallyOrderIterationAccessorResults(
+                    var sorted = _potentiallyOrderIterationAccessorResultsByPercentageChange(
                         orderingByPercentageChange,
                         returnObj[ iterationAccessor ]
                     );
@@ -357,7 +378,9 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
                 return returnObj;
             } );
 
-            _potentiallyOrderByPercentageChange( orderingByPercentageChange, accumulatedAll );
+            if ( !orderingOnlyNestedValuesByPercentageChange ) {
+                _potentiallyOrderByPercentageChange( orderingByPercentageChange, accumulatedAll );
+            }
 
             return accumulatedAll;
         },
@@ -438,7 +461,7 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
 
                     } );
 
-                    var sorted = _potentiallyOrderIterationAccessorResults(
+                    var sorted = _potentiallyOrderIterationAccessorResultsByPercentageChange(
                         orderingByPercentageChange,
                         returnObj[ iterationAccessor ]
                     );
@@ -466,7 +489,9 @@ crossfilterMA.accumulateGroupForPercentageChange = function( sourceGroup, debugM
                 return returnObj;
             } );
 
-            _potentiallyOrderByPercentageChange( orderingByPercentageChange, accumulatedAll );
+            if ( !orderingOnlyNestedValuesByPercentageChange ) {
+                _potentiallyOrderByPercentageChange( orderingByPercentageChange, accumulatedAll );
+            }
 
             return accumulatedAll;
 
