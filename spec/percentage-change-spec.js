@@ -894,6 +894,19 @@ describe('accumulateGroupForPercentageChange', function() {
 
         });
 
+        it('supports only sorting the iterated inner calculations', function() {
+
+
+            mockCustomKeyValueData();
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate = crossfilterMa.accumulateGroupForPercentageChange( groupVisitsByPlaceAndTerritoryByDate );
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate._debug(true);
+            percentageChangeGroupVisitsByPlaceAndTerritoryByDate.orderByPercentageChange( 1, { innerOnly: true });
+
+
+            debugger;
+
+        });
+
     });
 
 
